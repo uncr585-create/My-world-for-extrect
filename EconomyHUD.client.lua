@@ -40,7 +40,7 @@ local function notice(s)
  status.Text=tostring(s);status.Visible=true
  task.delay(3,function() if status.Text==s then status.Visible=false end end)
 end
-local shop=box(gui,"VillageShop",UDim2.fromScale(.5,.25),UDim2.fromOffset(300,360),false)
+local shop=box(gui,"VillageShop",UDim2.fromScale(.5,.25),UDim2.fromOffset(300,410),false)
 shop.AnchorPoint=Vector2.new(.5,0)
 label(shop,"🏡 HEART VILLAGE SHOP",UDim2.fromOffset(12,10),UDim2.fromOffset(272,34))
 button(shop,"✕",UDim2.fromOffset(256,48),UDim2.fromOffset(30,28),function()shop.Visible=false end)
@@ -49,9 +49,22 @@ local listing={
  {"1 Stone — 5 🪙","StoneBundle"},
  {"1 Fiber — 4 🪙","FiberBundle"},
  {"1 Crystal — 35 🪙","CrystalBundle"},
+ {"Stone Axe — 90 🪙","StoneAxe"},
+ {"Sword — 180 🪙","Sword"},
+ {"Leaf Vest — 125 🪙","LeafVest"},
+ {"Stone Armor — 350 🪙","StoneArmor"},
+ {"Crystal Armor — 950 🪙","CrystalArmor"},
 }
+local scroll=Instance.new("ScrollingFrame")
+scroll.Name="Products"
+scroll.Position=UDim2.fromOffset(12,82)
+scroll.Size=UDim2.fromOffset(276,310)
+scroll.ScrollBarThickness=6
+scroll.CanvasSize=UDim2.fromOffset(0,#listing*57+10)
+scroll.BackgroundTransparency=1
+scroll.Parent=shop
 for i,item in ipairs(listing) do
- button(shop,item[1],UDim2.fromOffset(16,82+(i-1)*62),UDim2.fromOffset(268,49),function()
+ button(scroll,item[1],UDim2.fromOffset(4,(i-1)*57),UDim2.fromOffset(255,49),function()
   Action:FireServer("Buy",item[2])
  end)
 end
@@ -97,3 +110,51 @@ TradeOffer.OnClientEvent:Connect(function(id,displayName,coins)
  offerId=id;offerLabel.Text=tostring(displayName).." offers you "..tostring(coins).." coins";offer.Visible=true
 end)
 Action:FireServer("Sync")
+
+
+-- Item trading V2: extra panel, old coin trading UI unchanged.
+local itemOfferRemote=events:WaitForChild("ItemTradeOffer")
+local itemPanel=box(gui,"ItemTrading",UDim2.fromScale(.5,.18),UDim2.fromOffset(310,340),false)
+itemPanel.AnchorPoint=Vector2.new(.5,0)
+label(itemPanel,"🎒 ITEM TRADING",UDim2.fromOffset(10,10),UDim2.fromOffset(245,34))
+button(itemPanel,"✕",UDim2.fromOffset(268,9),UDim2.fromOffset(30,31),function()itemPanel.Visible=false end)
+local function field(y,placeholder)
+ local f=Instance.new("TextBox")
+ f.Position=UDim2.fromOffset(15,y);f.Size=UDim2.fromOffset(280,39)
+ f.PlaceholderText=placeholder;f.Text="";f.TextScaled=true
+ f.BackgroundColor3=Color3.fromRGB(225,236,230)
+ f.TextColor3=Color3.fromRGB(20,30,30)
+ f.Parent=itemPanel
+ Instance.new("UICorner",f).CornerRadius=UDim.new(0,8)
+ return f
+end
+local playerField=field(60,"Recipient Roblox username")
+local itemField=field(119,"Item ID e.g. Wood, StoneAxe")
+local qtyField=field(178,"Quantity 1 - 10")
+button(itemPanel,"Offer Item",UDim2.fromOffset(15,240),UDim2.fromOffset(280,49),function()
+ local target=Players:FindFirstChild(playerField.Text)
+ local count=tonumber(qtyField.Text)
+ if not target or not count then notice("Invalid username or quantity");return end
+ Action:FireServer("ItemOffer",target.UserId,itemField.Text,count)
+end)
+button(gui,"🎒 Items",UDim2.new(1,-138,0,206),UDim2.fromOffset(126,40),function()
+ itemPanel.Visible=not itemPanel.Visible
+ shop.Visible=false;trade.Visible=false
+end)
+local itemIncoming=box(gui,"IncomingItemTrade",UDim2.fromScale(.5,.32),UDim2.fromOffset(300,164),false)
+itemIncoming.AnchorPoint=Vector2.new(.5,0)
+local itemIncomingText=label(itemIncoming,"Item trade",UDim2.fromOffset(10,8),UDim2.fromOffset(280,88))
+local itemOfferId=nil
+button(itemIncoming,"Accept",UDim2.fromOffset(12,108),UDim2.fromOffset(130,44),function()
+ if itemOfferId then Action:FireServer("ItemAccept",itemOfferId) end
+ itemIncoming.Visible=false;itemOfferId=nil
+end)
+button(itemIncoming,"Decline",UDim2.fromOffset(155,108),UDim2.fromOffset(130,44),function()
+ if itemOfferId then Action:FireServer("ItemDecline",itemOfferId) end
+ itemIncoming.Visible=false;itemOfferId=nil
+end)
+itemOfferRemote.OnClientEvent:Connect(function(id,username,item,count)
+ itemOfferId=id
+ itemIncomingText.Text=tostring(username).." offers "..tostring(count).." "..tostring(item)
+ itemIncoming.Visible=true
+end)

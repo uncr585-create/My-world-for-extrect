@@ -473,3 +473,56 @@ end
 for _, node in ipairs(CollectionService:GetTagged("AnmolResourceNode")) do setupNode(node) end
 CollectionService:GetInstanceAddedSignal("AnmolResourceNode"):Connect(setupNode)
 print("[Anmol] Inventory + Crafting + Saving V1 started; recipes:", table.concat(RECIPE_ORDER, ", "))
+
+
+-- Trading V2 equipment/shop bridge. Server-only, no client access.
+-- All inventory mutations in one server Script so item transfers cannot duplicate.
+local tradeBridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolInventoryTradeV2")
+if not tradeBridge then
+    tradeBridge = Instance.new("BindableFunction")
+    tradeBridge.Name = "AnmolInventoryTradeV2"
+    tradeBridge.Parent = game:GetService("ServerScriptService")
+end
+local TRADE_ITEMS = {Wood=true, Stone=true, Crystal=true, Fiber=true,
+    HollowAntler=true, CrystalShard=true, StoneAxe=true, Sword=true, Torch=true,
+    Bandage=true, NoiseDecoy=true, AntlerCharm=true, CrystalBlade=true,
+    LeafVest=true, StoneArmor=true, CrystalArmor=true}
+local EQUIPMENT_SHOP_ITEMS = {StoneAxe=true, Sword=true, LeafVest=true, StoneArmor=true, CrystalArmor=true}
+local function readyTrade(p)
+    if typeof(p)~="Instance" or not p:IsA("Player") or p.Parent~=Players then return nil end
+    local r=records[p]
+    if not r or not r.loaded or not r.locked or r.closing or r.saving then return nil end
+    return r
+end
+tradeBridge.OnInvoke = function(action, fromPlayer, toPlayer, itemName, count)
+    if type(itemName)~="string" or type(count)~="number"
+       or count~=math.floor(count) or count<1 or count>10 then return false, "Invalid amount" end
+    if action=="GrantEquipment" then
+        if not EQUIPMENT_SHOP_ITEMS[itemName] then return false,"Not sold here" end
+        local record=readyTrade(fromPlayer)
+        if not record then return false,"Inventory unavailable" end
+        local inv=record.inventory
+        if totalCount(inv)+count>MAX_TOTAL_ITEMS then return false,"Inventory full" end
+        inv[itemName]=(inv[itemName] or 0)+count
+        record.dirty=true
+        broadcast(fromPlayer,"Purchased "..itemName)
+        return true,"OK"
+    elseif action=="Transfer" then
+        if not TRADE_ITEMS[itemName] then return false,"Invalid item" end
+        if fromPlayer==toPlayer then return false,"Same player" end
+        local sender=readyTrade(fromPlayer)
+        local receiver=readyTrade(toPlayer)
+        if not sender or not receiver then return false,"Inventory unavailable" end
+        local a,b=sender.inventory,receiver.inventory
+        if (a[itemName] or 0)<count then return false,"Not enough items" end
+        if totalCount(b)+count>MAX_TOTAL_ITEMS then return false,"Receiver inventory full" end
+        -- No yields between verification and both mutations.
+        a[itemName]-=count
+        b[itemName]=(b[itemName] or 0)+count
+        sender.dirty=true;receiver.dirty=true
+        broadcast(fromPlayer,"Traded "..count.." "..itemName)
+        broadcast(toPlayer,"Received "..count.." "..itemName)
+        return true,"OK"
+    end
+    return false,"Unknown action"
+end

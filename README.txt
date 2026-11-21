@@ -1,34 +1,31 @@
-ANMOL LIVING WORLD — COINS + SHOP + TRADING V1
+ANMOL: LIVING WORLD — Trading V2 + Equipment Shop
 
-FILES (save all in a versioned GitHub folder; do NOT delete originals yet):
-- Economy.server.lua => ServerScriptService / Script
-- EconomyHUD.client.lua => StarterPlayer / StarterPlayerScripts / LocalScript
+IMPORTANT: These are UPDATED copies of existing Economy/Inventory scripts, NOT additive copies.
+Keep the original archives in GitHub for now, as requested. When setting up Studio, only ONE active Script per role.
 
-FEATURES:
-- Saved coins in separate DataStore AnmolLivingWorld_Coins_v1
-- Monsters grant coins through AnmolMonsterDefeated server BindableEvent:
-    RootStalker 12; WhisperShade 18; HollowDeer 28; CrystalBurrower 40
-- Village Shop automatically spawns next to Heart Village at (-215,4,20).
-  Use proximity prompt to open. Buy single-unit resources; these use the inventory
-  server-only AnmolGrantLoot bridge in the latest inventory code.
-- Coins trading: player types recipient's exact username and amount, recipient
-  must accept. Must be in same server within 18 studs; max 1000 coins per offer.
-- Mobile-friendly Coins HUD, Shop, Trading popup.
+Contents:
+- Economy.server.lua — REPLACE Coins Shop Trading V1 Economy.server.lua
+- EconomyHUD.client.lua — REPLACE Coins Shop Trading V1 HUD
+- InventoryCrafting.server.lua — REPLACE the InventoryCrafting.server.lua version from Equipment Armor V1 (preserves armor, crafted items and DataStore)
 
-DEPENDENCIES:
-- Latest InventoryCrafting.server.lua from Equipment + Armor V1, which creates
-  ServerScriptService.AnmolGrantLoot (required to buy shop resource bundles).
-- Achievements.server.lua creates AnmolMonsterDefeated, and the *latest* 
-  LootRewards.server.lua fires it on server-attributed monster deaths.
-  Both scripts MUST be installed for coins from kills.
-- IslandMap.server.lua places Heart Village in the same location.
+In Studio:
+  Economy.server.lua -> ServerScriptService > Script
+  InventoryCrafting.server.lua -> ServerScriptService > Script
+  EconomyHUD.client.lua -> StarterPlayer > StarterPlayerScripts > LocalScript
 
-IMPORTANT:
-- Coin-only trading. Item-to-item trades will be added after inventory integration.
-- DataStore access needs a published Roblox experience and Studio API setup.
-- Separate inventory/coin DataStores are NOT an atomic transaction. Test purchases
-  and disconnects carefully before releasing publicly.
-- Session lease prevents simultaneous editing across servers in normal cases,
-  but network/DataStore failures still need production testing.
-- Do not run two Economy.server.lua copies.
-- This has not yet been verified in Roblox Studio; do not guarantee functionality.
+Features:
+- 5 shop equipment items: Stone Axe 90, Sword 180, Leaf Vest 125, Stone Armor 350, Crystal Armor 950 coins.
+- Existing material bundles and coin trading remain.
+- Item trade: one-way transfer to nearby player after recipient Accept.
+- Server checks item type, count (1-10), inventory ownership/capacity and distance.
+- Trade requests expire after 30 seconds; cooldown and recipient confirmation.
+
+Requirements / limitations:
+- Shop purchases require standing near Heart Village Trader.
+- Buyer balance must be loaded from the existing Economy DataStore.
+- Both players must have loaded inventories.
+- Shop purchase uses two independent saved profiles (coins/inventory): it isn't an atomic cross-DataStore transaction; data loss or rejoin at wrong time could yield inconsistent results. Test and improve save recovery before releasing to public players.
+- No Robux involved.
+- Item trade is an offer of items from sender to recipient, not a simultaneous two-sided exchange; do not present it as swap trading.
+- Existing equipped armor might remain active until refreshed after trading it away; test equipped-item state.
+- Not tested in Roblox Studio.
