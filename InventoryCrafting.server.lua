@@ -13,7 +13,9 @@ local HARVEST_DISTANCE = 15
 local CRAFT_COOLDOWN = 0.35
 local ITEMS = {
     Wood = true, Stone = true, Crystal = true, Fiber = true,
+    HollowAntler = true, CrystalShard = true,
     StoneAxe = true, Sword = true, Torch = true, Bandage = true, NoiseDecoy = true,
+    AntlerCharm = true, CrystalBlade = true,
 }
 local RECIPES = {
     StoneAxe = { Wood = 3, Stone = 2 },
@@ -21,8 +23,10 @@ local RECIPES = {
     Torch = { Wood = 2, Fiber = 1 },
     Bandage = { Fiber = 3 },
     NoiseDecoy = { Stone = 2, Crystal = 1 },
+    AntlerCharm = { HollowAntler = 1, Fiber = 3 },
+    CrystalBlade = { CrystalShard = 2, Stone = 3, Crystal = 1 },
 }
-local RECIPE_ORDER = { "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy" }
+local RECIPE_ORDER = { "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy", "AntlerCharm", "CrystalBlade" }
 local NODE_YIELDS = { Wood = 3, Stone = 2, Crystal = 1, Fiber = 2 }
 
 -- DataStore V1. Change DATASTORE_NAME only if you intentionally want a new save slot.
@@ -139,7 +143,7 @@ local function openSession(player)
     local raw = type(stored.inventory) == "table" and stored.inventory or {}
     local remaining = MAX_TOTAL_ITEMS
     -- Consistent order makes total-cap sanitization deterministic.
-    for _, item in ipairs({"Wood", "Stone", "Crystal", "Fiber", "StoneAxe", "Torch", "Bandage", "NoiseDecoy"}) do
+    for _, item in ipairs({"Wood", "Stone", "Crystal", "Fiber", "HollowAntler", "CrystalShard", "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy", "AntlerCharm", "CrystalBlade"}) do
         inv[item] = math.min(sanitizeCount(raw[item], MAX_TOTAL_ITEMS), remaining)
         remaining -= inv[item]
     end
@@ -317,10 +321,10 @@ grantBridge.OnInvoke = function(player, rewards)
         return false, {}
     end
     -- Rewards only use collected material types (no free tools or crafted weapons).
-    local allowed = {Wood = true, Stone = true, Crystal = true, Fiber = true}
+    local allowed = {Wood = true, Stone = true, Crystal = true, Fiber = true, HollowAntler = true, CrystalShard = true}
     local granted = {}
     local capacity = math.max(0, MAX_TOTAL_ITEMS - totalCount(inv))
-    for _, name in ipairs({"Wood", "Stone", "Crystal", "Fiber"}) do
+    for _, name in ipairs({"Wood", "Stone", "Crystal", "Fiber", "HollowAntler", "CrystalShard"}) do
         local count = rewards[name]
         if count ~= nil then
             if type(count) ~= "number" or count ~= count or count ~= math.floor(count)
@@ -341,7 +345,7 @@ grantBridge.OnInvoke = function(player, rewards)
     for name, count in pairs(granted) do inv[name] += count end
     record.dirty = true
     local chunks = {}
-    for _, name in ipairs({"Wood", "Stone", "Crystal", "Fiber"}) do
+    for _, name in ipairs({"Wood", "Stone", "Crystal", "Fiber", "HollowAntler", "CrystalShard"}) do
         if granted[name] then table.insert(chunks, "+" .. granted[name] .. " " .. name) end
     end
     broadcast(player, "Monster loot: " .. table.concat(chunks, ", "))

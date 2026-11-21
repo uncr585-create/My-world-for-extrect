@@ -1,4 +1,4 @@
--- ANMOL: LIVING WORLD / Loot + Rewards V1
+-- ANMOL: LIVING WORLD / Monster Loot V2
 -- ServerScriptService > LootRewards.server.lua (Script)
 -- Pays the most recent valid server-attributed attacker on a monster death.
 local Players = game:GetService("Players")
@@ -14,15 +14,21 @@ local bound = setmetatable({}, {__mode = "k"})
 local DROP_TABLES = {
     RootStalker = {Wood = {2,4}, Fiber = {1,2}, CrystalChance = 0.08},
     WhisperShade = {Stone = {1,3}, Fiber = {1,2}, CrystalChance = 0.22},
+    HollowDeer = {Wood = {2,4}, Fiber = {2,3}, HollowAntlerChance = 0.35},
+    CrystalBurrower = {Stone = {3,5}, Crystal = {1,2}, CrystalShardChance = 0.30},
 }
 local function rollRewards(monsterType)
     local spec = DROP_TABLES[monsterType]
     if not spec then return nil end
     local rewards = {}
     for name, range in pairs(spec) do
-        if name ~= "CrystalChance" then rewards[name] = math.random(range[1],range[2]) end
+        if name ~= "CrystalChance" and name ~= "HollowAntlerChance" and name ~= "CrystalShardChance" then
+            rewards[name] = math.random(range[1],range[2])
+        end
     end
     if math.random() < (spec.CrystalChance or 0) then rewards.Crystal = 1 end
+    if math.random() < (spec.HollowAntlerChance or 0) then rewards.HollowAntler = 1 end
+    if math.random() < (spec.CrystalShardChance or 0) then rewards.CrystalShard = 1 end
     return rewards
 end
 local function onDeath(model)
@@ -44,7 +50,11 @@ local function onDeath(model)
     local ok, granted, result = pcall(function()
         return grantBridge:Invoke(player, rewards)
     end)
-    if not ok then warn("[Anmol Loot] Grant error:", granted) end
+    if not ok then
+        warn("[Anmol Loot] Grant error:", granted)
+    elseif not granted then
+        warn("[Anmol Loot] No items granted (inventory full, locked, or not loaded)")
+    end
 end
 local function watch(model)
     if not model:IsA("Model") or bound[model] then return end
@@ -57,4 +67,4 @@ local function watch(model)
 end
 for _, model in ipairs(monsters:GetChildren()) do watch(model) end
 monsters.ChildAdded:Connect(watch)
-print("[Anmol] Loot Rewards V1 ready")
+print("[Anmol] Monster Loot V2 ready")
