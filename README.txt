@@ -1,19 +1,29 @@
-ANMOL: LIVING WORLD — Health / Hunger / Stamina V1
+ANMOL: LIVING WORLD - INVENTORY + CRAFTING V1
 
-Files
-- SurvivalSystem.server.lua  -> ServerScriptService > Script
-- SurvivalHUD.client.lua     -> StarterPlayer > StarterPlayerScripts > LocalScript
+INSTALL IN ROBLOX STUDIO (Windows/Mac, later):
+1) Add InventoryCrafting.server.lua as Script inside ServerScriptService.
+2) Add InventoryCraftingHUD.client.lua as LocalScript inside StarterPlayer > StarterPlayerScripts.
+3) Add collectable Parts or Models in Workspace. Tag each with CollectionService tag:
+   AnmolResourceNode
+   Set Attribute ResourceType (string) to one of Wood / Stone / Crystal / Fiber.
+   Optional RespawnSeconds (number) default 12, min 3, max 120.
+4) For quick testing without building assets, optionally install DemoResourceNodes.server.lua
+   into ServerScriptService and set ENABLE_DEMO_NODES = true.
 
-V1 behavior
-- Health uses Roblox Humanoid health (default 100).
-- Hunger starts at 100 and decreases over time; at zero, health decreases.
-- Stamina starts at 100; sprinting drains it and resting regenerates it.
-- Mobile players tap the Sprint button to toggle; desktop players hold LeftShift.
-- Movement and hunger/stamina are authoritative on the server.
-- Stats reset on respawn in V1. Permanent death rules for Hardcore are NOT included here.
-- Eating, hunger saving and game mode integration are planned for a later module.
+HOW IT WORKS:
+- Server alone owns item counts; maximum 100 total items per player.
+- Prompt collecting gives Wood +3 / Stone +2 / Crystal +1 / Fiber +2.
+- Stone Axe: 3 Wood + 2 Stone
+- Torch: 2 Wood + 1 Fiber
+- Bandage: 3 Fiber
+- Noise Decoy: 2 Stone + 1 Crystal
+- Tap 🎒 INVENTORY to view inventory and craft.
+- Nodes have shared depletion / respawn, and server validates distance.
 
-Setup requires Roblox Studio on Windows or macOS. Android can save/edit/upload these files,
-but not execute these server-side game scripts in an independent Roblox experience.
-
-Security: never let a client send arbitrary Hunger/Stamina/Health values to the server.
+IMPORTANT LIMITATIONS:
+- Crafted items currently count in inventory; no equipped tools, light effects,
+  healing or noise effects until future gameplay systems are connected.
+- No DataStore persistence yet; inventory resets when a player leaves.
+- This prototype does NOT alter the existing survival HUD or World Anger scripts.
+- Studio installation / in-game testing has not happened yet.
+- A ZIP is for backup. Extract .lua files before installing them in Studio.
