@@ -1,29 +1,35 @@
-ANMOL: LIVING WORLD - INVENTORY + CRAFTING V1
+ANMOL: LIVING WORLD — MONSTER AI V1
+==================================
+What is inside:
+- MonsterConfig.lua (ModuleScript)
+- MonsterAI.server.lua (Script)
 
-INSTALL IN ROBLOX STUDIO (Windows/Mac, later):
-1) Add InventoryCrafting.server.lua as Script inside ServerScriptService.
-2) Add InventoryCraftingHUD.client.lua as LocalScript inside StarterPlayer > StarterPlayerScripts.
-3) Add collectable Parts or Models in Workspace. Tag each with CollectionService tag:
-   AnmolResourceNode
-   Set Attribute ResourceType (string) to one of Wood / Stone / Crystal / Fiber.
-   Optional RespawnSeconds (number) default 12, min 3, max 120.
-4) For quick testing without building assets, optionally install DemoResourceNodes.server.lua
-   into ServerScriptService and set ENABLE_DEMO_NODES = true.
+FEATURES
+- Automatically generates basic Root Stalker and Whisper Shade placeholder R6 monsters.
+- Server-authoritative movement and damage; no client-supplied damage RemoteEvent.
+- NPCs try pathfinding and chase nearby players.
+- Whisper Shade notices fast-moving/running players from farther away.
+- Reads Workspace attribute WorldAnger (0..100) if your World Anger system supplies it.
+- Whisper Shade becomes eligible for spawns above 25 anger. Otherwise Root Stalker.
+- Attacks damage the Humanoid, integrating with Roblox health by default.
 
-HOW IT WORKS:
-- Server alone owns item counts; maximum 100 total items per player.
-- Prompt collecting gives Wood +3 / Stone +2 / Crystal +1 / Fiber +2.
-- Stone Axe: 3 Wood + 2 Stone
-- Torch: 2 Wood + 1 Fiber
-- Bandage: 3 Fiber
-- Noise Decoy: 2 Stone + 1 Crystal
-- Tap 🎒 INVENTORY to view inventory and craft.
-- Nodes have shared depletion / respawn, and server validates distance.
+PC SETUP IN ROBLOX STUDIO (LATER)
+1) Add a ModuleScript to ServerScriptService, name EXACTLY MonsterConfig, paste MonsterConfig.lua.
+2) Add a Script to ServerScriptService, name MonsterAI, paste MonsterAI.server.lua.
+3) Optional: Create a Workspace folder named MonsterSpawns with anchored Parts marking enemy spawn spots.
+   If absent, the script attempts to spawn at random ground positions 45-110 studs from players.
+4) Test in Play mode. Use Server logs / Output for errors.
+5) Disable/destroy the script if monsters interfere with your map while testing.
 
-IMPORTANT LIMITATIONS:
-- Crafted items currently count in inventory; no equipped tools, light effects,
-  healing or noise effects until future gameplay systems are connected.
-- No DataStore persistence yet; inventory resets when a player leaves.
-- This prototype does NOT alter the existing survival HUD or World Anger scripts.
-- Studio installation / in-game testing has not happened yet.
-- A ZIP is for backup. Extract .lua files before installing them in Studio.
+ANDROID NOW
+- Upload both Lua files AND this README to your game's GitHub repository.
+- This is not a loadstring for a Roblox executor. It is game server code for your own Roblox place.
+
+IMPORTANT
+- THIS VERSION IS UNTESTED IN ROBLOX STUDIO. NPC body/rig movement and pathfinding may require fixes.
+- The NPCs are placeholders, not finished 3D character models or animations.
+- WorldAnger compatibility is conditional: the other script must call
+  workspace:SetAttribute("WorldAnger", value) on the server.
+- Normal/Hardcore damage multipliers are NOT yet connected.
+- Monster kills, loot drops, persistent data, sound, sophisticated hearing and animations are future systems.
+- For smooth navigation place marker parts on navigable terrain, away from players' spawn.
