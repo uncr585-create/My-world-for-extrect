@@ -13,15 +13,16 @@ local HARVEST_DISTANCE = 15
 local CRAFT_COOLDOWN = 0.35
 local ITEMS = {
     Wood = true, Stone = true, Crystal = true, Fiber = true,
-    StoneAxe = true, Torch = true, Bandage = true, NoiseDecoy = true,
+    StoneAxe = true, Sword = true, Torch = true, Bandage = true, NoiseDecoy = true,
 }
 local RECIPES = {
     StoneAxe = { Wood = 3, Stone = 2 },
+    Sword = { Wood = 2, Stone = 5, Crystal = 1 },
     Torch = { Wood = 2, Fiber = 1 },
     Bandage = { Fiber = 3 },
     NoiseDecoy = { Stone = 2, Crystal = 1 },
 }
-local RECIPE_ORDER = { "StoneAxe", "Torch", "Bandage", "NoiseDecoy" }
+local RECIPE_ORDER = { "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy" }
 local NODE_YIELDS = { Wood = 3, Stone = 2, Crystal = 1, Fiber = 2 }
 
 -- DataStore V1. Change DATASTORE_NAME only if you intentionally want a new save slot.
@@ -281,6 +282,22 @@ spendBridge.OnInvoke = function(player, costs)
     record.dirty = true
     broadcast(player, "Materials used for building")
     return true, "OK"
+end
+
+-- Combat integration: read-only server-only equipment ownership check.
+local combatBridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolHasWeapon")
+if not combatBridge then
+    combatBridge = Instance.new("BindableFunction")
+    combatBridge.Name = "AnmolHasWeapon"
+    combatBridge.Parent = game:GetService("ServerScriptService")
+end
+combatBridge.OnInvoke = function(player, itemName)
+    if typeof(player) ~= "Instance" or not player:IsA("Player") then return false end
+    if itemName ~= "StoneAxe" and itemName ~= "Sword" then return false end
+    local inv = inventories[player]
+    local record = records[player]
+    return inv ~= nil and record ~= nil and record.loaded == true
+        and record.locked == true and not record.closing and (inv[itemName] or 0) >= 1
 end
 
 GetInventory.OnServerInvoke = function(player)

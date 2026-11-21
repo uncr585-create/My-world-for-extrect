@@ -12,11 +12,12 @@ local GetInventory = remoteFolder:WaitForChild("GetInventory")
 
 local RECIPES = {
     {name="StoneAxe", label="Stone Axe", need="3 Wood + 2 Stone"},
+    {name="Sword", label="Sword", need="2 Wood + 5 Stone + 1 Crystal"},
     {name="Torch", label="Torch", need="2 Wood + 1 Fiber"},
     {name="Bandage", label="Bandage", need="3 Fiber"},
     {name="NoiseDecoy", label="Noise Decoy", need="2 Stone + 1 Crystal"},
 }
-local ITEM_ORDER = {"Wood", "Stone", "Crystal", "Fiber", "StoneAxe", "Torch", "Bandage", "NoiseDecoy"}
+local ITEM_ORDER = {"Wood", "Stone", "Crystal", "Fiber", "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy"}
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "AnmolInventoryHUD"
