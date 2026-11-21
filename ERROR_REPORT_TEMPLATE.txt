@@ -1,0 +1,7 @@
+Game stage:
+Number of test players:
+Script name:
+Output error (copy exactly):
+Line number:
+Steps to reproduce:
+Screenshot (optional):

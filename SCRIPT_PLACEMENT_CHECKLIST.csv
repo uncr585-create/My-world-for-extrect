@@ -1,0 +1,45 @@
+Studio service,Script type,Filename,Source package
+ReplicatedStorage,ModuleScript,AnmolSoundConfig.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,Achievements.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,AdvancedMonsters.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,AntlerCharm.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,ArmorService.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,Building.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,Combat.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,DailyQuests.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,Economy.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,GameModes.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,InventoryCrafting.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,IslandExpansionV2.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,IslandMap.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,LootRewards.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,MonsterAI.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,ModuleScript,MonsterConfig.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,RandomWorldEvents.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,ResourceZone.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,SoundAtmosphere.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,SurvivalSystem.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,Teams.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,Tutorial.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,WeatherDayNight.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,WorldAnger.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,WorldHealing.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+ServerScriptService,Script,WorldHeartBoss.server.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,AchievementsHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,ArmorHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,BuildingHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,CombatHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,DailyQuestsHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,EconomyHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,GameModeHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,InventoryCraftingHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,MainMenu_Updated.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,SettingsHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,SoundAtmosphere.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,SurvivalHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,TeamsHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,TutorialHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,WeatherHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,WorldAngerHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,WorldEventsHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
+StarterPlayer > StarterPlayerScripts,LocalScript,WorldHealingHUD.client.lua,Anmol_Pre_PC_Code_Audit_V2.zip
