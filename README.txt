@@ -1,34 +1,32 @@
-ANMOL: LIVING WORLD — ACHIEVEMENTS + REWARDS V1
+ANMOL: LIVING WORLD — World Healing + Nature Reaction V1
 
-INSTALL ON PC (Roblox Studio):
-1) Achievements.server.lua -> ServerScriptService (Script)
-2) AchievementsHUD.client.lua -> StarterPlayer > StarterPlayerScripts (LocalScript)
-3) LootRewards.server.lua -> REPLACE the older LootRewards.server.lua in ServerScriptService
-4) Keep the MOST RECENT InventoryCrafting.server.lua (from Loot + Rewards V1); do not add a second copy.
+WHAT'S INCLUDED
+- WorldHealing.server.lua : 6 healing plants with Hold E / mobile ProximityPrompt.
+- WorldHealingHUD.client.lua : informative nature status banner.
 
-Achievements and cosmetic title rewards:
-- 10 Trees: Forest Wanderer
-- 50 Trees: Woodland Keeper
-- 5 Crystals: Crystal Seeker
-- 25 Crystals: Crystal Expert
-- 3 Crafts: Village Crafter
-- 15 Crafts: Master Crafter
-- 1 Monster: First Defender
-- 10 Monsters: Monster Hunter
-- 30 Monsters: Shadow Legend
+ROBLOX STUDIO SETUP (when you have a PC)
+1. Keep WorldAnger.server.lua (required). It must create:
+   ReplicatedStorage.AnmolWorldState.Anger and ServerScriptService.AnmolWorldAction.
+2. Keep IslandMap.server.lua (recommended) to create AnmolIslandV1.
+3. Add WorldHealing.server.lua as a Script under ServerScriptService.
+4. Add WorldHealingHUD.client.lua as a LocalScript under StarterPlayer > StarterPlayerScripts.
+5. Start a Play test, walk to glowing plant placeholders in the forest,
+   then hold E (or use the Roblox mobile ProximityPrompt button).
+6. Verify World Anger drops 8 points per healing event, unless already 0.
 
-Reads the saved inventory progress attributes AnmolTreesCut, AnmolCrystalsMined,
-and AnmolItemsCrafted. Monster kills and achievement unlocks save in a
-separate Roblox DataStore: AnmolLivingWorld_Achievements_v1.
-When an achievement unlocks, a notification appears and player attribute
-AnmolTitle is set to the most recently awarded title.
+BEHAVIOR
+- 6 healable plant locations in Whispering Forest / village border.
+- One successful heal reduces World Anger by 8.
+- Each plant has a 55-second cooldown; no costs are charged.
+- When World Anger increases: only this module's decorative vine parts
+  change color. It will NOT move actual terrain or alter base geometry.
+- Current V1 doesn't have healing crystals, boss pacification, or vegetation
+  restoration persistence. Those require later integration/testing.
 
-IMPORTANT:
-- If Roblox DataStore loading fails, achievements may display for that session
-  but saving is skipped, to avoid overwriting existing progress.
-- This is a prototype. Roblox Studio/published experience testing is required.
-- These are in-game cosmetic title labels; NOT official Roblox badges.
-- Already unlocked titles will not trigger another toast on rejoin.
-- No paid items, Robux rewards, or premium access.
-- Copy/paste .lua files into the correct Roblox Studio Script objects.
-- On mobile, extract ZIP and upload source .lua files to GitHub for later setup.
+COMPATIBILITY NOTES
+- Do not add a second copy of WorldAnger.server.lua.
+- Works alongside the existing island map, weather, combat, and inventory code.
+- WorldHeartHealed (-25) remains available in WorldAnger but isn't triggered
+  by this V1. We will wire it into the heart interaction later.
+- HUD may overlap earlier HUDs; adjust positioning during Studio tests.
+- Scripts have not been tested in Roblox Studio. Tested logic is not guaranteed.
