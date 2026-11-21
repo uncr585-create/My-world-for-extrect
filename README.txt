@@ -1,30 +1,34 @@
-ANMOL: LIVING WORLD — EQUIPMENT + ARMOR V1
+ANMOL LIVING WORLD — COINS + SHOP + TRADING V1
 
-New mechanics:
-- Leaf Vest: craft 8 Fiber + 3 Wood, blocks 10% monster/boss damage.
-- Stone Armor: craft 12 Stone + 4 Fiber, blocks 20% damage.
-- Crystal Armor: craft 6 Crystal + 8 Stone + 1 Crystal Shard, blocks 35% damage.
-- Equip only one armor at a time via mobile-friendly Armor HUD.
-- SERVER verifies owned item before equipping and on every attack.
-- Damage mitigation applies to the monsters and World Heart Boss updated here.
-- Starvation, poison and other damage paths are NOT reduced by armor yet.
+FILES (save all in a versioned GitHub folder; do NOT delete originals yet):
+- Economy.server.lua => ServerScriptService / Script
+- EconomyHUD.client.lua => StarterPlayer / StarterPlayerScripts / LocalScript
 
-INSTALL IN ROBLOX STUDIO (NOT DELTA):
-ServerScriptService Scripts:
-  REPLACE InventoryCrafting.server.lua (latest replacement with saved inventory)
-  ADD ArmorService.server.lua
-  REPLACE MonsterAI.server.lua (Root Stalker + Whisper Shade)
-  REPLACE AdvancedMonsters.server.lua (Hollow Deer + Burrower)
-  REPLACE WorldHeartBoss.server.lua
-StarterPlayer > StarterPlayerScripts LocalScripts:
-  REPLACE InventoryCraftingHUD.client.lua
-  ADD ArmorHUD.client.lua
+FEATURES:
+- Saved coins in separate DataStore AnmolLivingWorld_Coins_v1
+- Monsters grant coins through AnmolMonsterDefeated server BindableEvent:
+    RootStalker 12; WhisperShade 18; HollowDeer 28; CrystalBurrower 40
+- Village Shop automatically spawns next to Heart Village at (-215,4,20).
+  Use proximity prompt to open. Buy single-unit resources; these use the inventory
+  server-only AnmolGrantLoot bridge in the latest inventory code.
+- Coins trading: player types recipient's exact username and amount, recipient
+  must accept. Must be in same server within 18 studs; max 1000 coins per offer.
+- Mobile-friendly Coins HUD, Shop, Trading popup.
+
+DEPENDENCIES:
+- Latest InventoryCrafting.server.lua from Equipment + Armor V1, which creates
+  ServerScriptService.AnmolGrantLoot (required to buy shop resource bundles).
+- Achievements.server.lua creates AnmolMonsterDefeated, and the *latest* 
+  LootRewards.server.lua fires it on server-attributed monster deaths.
+  Both scripts MUST be installed for coins from kills.
+- IslandMap.server.lua places Heart Village in the same location.
 
 IMPORTANT:
-- Do not keep duplicate versions of same-name scripts.
-- Keep existing Combat, Loot, Crafting, WorldAnger, GameModes and Weather scripts.
-- Equipped armor selection persists for this SERVER SESSION only; crafted armor item
-  is persisted via current inventory DataStore. Re-equip after rejoining.
-- If an ArmorService Script is absent, updated AI falls back to regular damage.
-- All gameplay is UNTESTED in Roblox Studio. Test with one player, then multiplayer.
-- Studio DataStore testing requires a published experience and appropriate API settings.
+- Coin-only trading. Item-to-item trades will be added after inventory integration.
+- DataStore access needs a published Roblox experience and Studio API setup.
+- Separate inventory/coin DataStores are NOT an atomic transaction. Test purchases
+  and disconnects carefully before releasing publicly.
+- Session lease prevents simultaneous editing across servers in normal cases,
+  but network/DataStore failures still need production testing.
+- Do not run two Economy.server.lua copies.
+- This has not yet been verified in Roblox Studio; do not guarantee functionality.
