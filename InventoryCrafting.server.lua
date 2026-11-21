@@ -300,6 +300,54 @@ combatBridge.OnInvoke = function(player, itemName)
         and record.locked == true and not record.closing and (inv[itemName] or 0) >= 1
 end
 
+-- Loot Rewards V1: server-only, validated item grant bridge.
+-- No client RemoteEvent may directly grant items.
+local grantBridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolGrantLoot")
+if not grantBridge then
+    grantBridge = Instance.new("BindableFunction")
+    grantBridge.Name = "AnmolGrantLoot"
+    grantBridge.Parent = game:GetService("ServerScriptService")
+end
+grantBridge.OnInvoke = function(player, rewards)
+    if typeof(player) ~= "Instance" or not player:IsA("Player") then return false, {} end
+    if type(rewards) ~= "table" then return false, {} end
+    local record = records[player]
+    local inv = inventories[player]
+    if not record or not record.loaded or not record.locked or record.closing or not inv then
+        return false, {}
+    end
+    -- Rewards only use collected material types (no free tools or crafted weapons).
+    local allowed = {Wood = true, Stone = true, Crystal = true, Fiber = true}
+    local granted = {}
+    local capacity = math.max(0, MAX_TOTAL_ITEMS - totalCount(inv))
+    for _, name in ipairs({"Wood", "Stone", "Crystal", "Fiber"}) do
+        local count = rewards[name]
+        if count ~= nil then
+            if type(count) ~= "number" or count ~= count or count ~= math.floor(count)
+                or count < 0 or count > 20 then
+                return false, {}
+            end
+            local amount = math.min(capacity, count)
+            if amount > 0 then
+                granted[name] = amount
+                capacity -= amount
+            end
+        end
+    end
+    for name in pairs(rewards) do
+        if not allowed[name] then return false, {} end
+    end
+    if next(granted) == nil then return false, {} end
+    for name, count in pairs(granted) do inv[name] += count end
+    record.dirty = true
+    local chunks = {}
+    for _, name in ipairs({"Wood", "Stone", "Crystal", "Fiber"}) do
+        if granted[name] then table.insert(chunks, "+" .. granted[name] .. " " .. name) end
+    end
+    broadcast(player, "Monster loot: " .. table.concat(chunks, ", "))
+    return true, granted
+end
+
 GetInventory.OnServerInvoke = function(player)
     local inv = inventories[player]
     return inv and copyInventory(inv) or newInventory()

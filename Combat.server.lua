@@ -74,6 +74,12 @@ request.OnServerEvent:Connect(function(player, requestedWeapon)
     end
     local target = getTarget(character, root.Position + Vector3.new(0, 1, 0), root.CFrame.LookVector, config.Range)
     if target then
+        -- Reward attribution is set by the server only, just before damage.
+        local monster = target.Parent
+        if monster and monster:IsA("Model") and monster:GetAttribute("AnmolMonster") == true then
+            monster:SetAttribute("LastHitUserId", player.UserId)
+            monster:SetAttribute("LastHitAt", os.time())
+        end
         target:TakeDamage(config.Damage)
         feedback:FireClient(player, "Hit: -" .. config.Damage)
     else

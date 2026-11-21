@@ -1,21 +1,24 @@
-ANMOL: LIVING WORLD — WEAPONS + COMBAT V1
+ANMOL: LIVING WORLD — LOOT + REWARDS V1
 
-INCLUDED FILES + ROBLOX STUDIO PLACEMENT:
-- Combat.server.lua -> ServerScriptService as Script
-- CombatHUD.client.lua -> StarterPlayer > StarterPlayerScripts as LocalScript
-- InventoryCrafting.server.lua -> ServerScriptService as Script, REPLACE previous same-name inventory script
-- InventoryCraftingHUD.client.lua -> StarterPlayer > StarterPlayerScripts as LocalScript, REPLACE previous inventory HUD
+INSTALL (when you have Roblox Studio):
+1. Replace the OLD Combat.server.lua in ServerScriptService with this version.
+2. Replace the OLD InventoryCrafting.server.lua with this version. It is based on Weapons + Combat V1 and keeps the existing crafting, saving, building and resource features.
+3. Add LootRewards.server.lua as a NEW Script in ServerScriptService.
+4. Keep MonsterAI.server.lua and MonsterConfig.lua from Monster AI V1.
+5. Do NOT run old and new same-name inventory or combat scripts simultaneously.
 
-IMPORTANT
-1. ONLY ONE InventoryCrafting.server.lua script should be active.
-   This updated version is based on Building + Shelter V1 and retains its saving and building bridges.
-2. Keep MonsterAI.server.lua and MonsterConfig.lua from Monster AI V1.
-3. Hit detection only damages models in Workspace.AnmolMonsters with AnmolMonster=true and a living Humanoid.
-4. Players must face targets, be in range and have line of sight.
-5. Weapons: Fists (free, damage 4), StoneAxe (damage 16), Sword (damage 25).
-6. Craft Sword from 2 Wood + 5 Stone + 1 Crystal. Stone Axe from 3 Wood + 2 Stone.
-7. HUD works on touch (ATTACK button) and keyboard F. Select weapons using the cycle button.
-8. Existing DATASTORE_NAME is unchanged; older saves load with Sword quantity defaulting to 0.
-9. Boss (World Heart) uses its own crystal mechanic in V1, not weapon hits yet.
-10. This is a first prototype; Studio testing, animations, mobile UI spacing, exploit resistance and balancing remain.
-11. Do not execute these server scripts via a client executor; put them in Studio as specified.
+REWARDS:
+- Root Stalker: 2–4 Wood, 1–2 Fiber, 8% chance of 1 Crystal.
+- Whisper Shade: 1–3 Stone, 1–2 Fiber, 22% chance of 1 Crystal.
+- Last player to land a valid server-checked hit receives the reward if the monster dies within 25 seconds.
+- Items are added through a server-only BindableFunction and are included in saved inventory.
+- Inventory max is still 100 total items. Overflow rewards are not granted.
+- If nobody attacked the monster, there is no loot reward.
+
+NOT INCLUDED:
+- Physical dropped loot bags or sharing rewards across the whole party.
+- Boss rewards (boss currently uses separate health system, not a monster Humanoid).
+- Actual Roblox Studio gameplay testing.
+
+NOTE: Rewards require both the revised Combat and InventoryCrafting scripts.
+DataStore permissions and UI overlap should be tested in Roblox Studio.
