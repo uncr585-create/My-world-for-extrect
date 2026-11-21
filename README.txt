@@ -1,31 +1,26 @@
-ANMOL: LIVING WORLD — Island Expansion V2
+ANMOL: LIVING WORLD — World Heart Boss V1
 
-CONTENTS
-- IslandExpansionV2.server.lua (new, additive server script)
+CONTENTS:
+- WorldHeartBoss.server.lua
+- WorldHeartBossHUD.client.lua
 
-WHAT IT ADDS
-- Crystal Depths: glowing pillars, 5 crystals and 3 stone resource nodes
-- Toxic Marsh: glowing decorative pools, 5 fiber and 3 wood resource nodes
-- World Heart: central glowing heart and boss-arena placeholder
-- Traversable ground and roads connecting these areas to the V1 island
-- Four additional monster spawn markers; V1 AI decides if/when it uses them
+INSTALL IN ROBLOX STUDIO (later, when PC is available):
+1) Keep IslandMap.server.lua and IslandExpansionV2.server.lua in ServerScriptService.
+2) Put WorldHeartBoss.server.lua in ServerScriptService as a Script.
+3) Put WorldHeartBossHUD.client.lua in StarterPlayer > StarterPlayerScripts as a LocalScript.
+4) Keep WorldAnger.server.lua in ServerScriptService for anger integration.
+5) Press Play in Studio. Travel to World Heart area (-116, 485) on the island.
+6) Start battle at GREEN pedestal by the arena entrance.
+7) Channel Strike at BLUE crystals around guardian. Dodge RED circle warnings.
+8) Boss has 3 phases (100-67%, 66-34%, 33-0%). Higher World Anger increases attack damage.
+9) On boss defeat, WorldHeartHealed server event lowers Anger by 25.
+10) Boss resets 18 seconds after win/fail. Trial fails after 150 seconds or 45 seconds without any strike.
 
-IMPORTANT SETUP WHEN YOU HAVE ROBLOX STUDIO
-1. Keep IslandMap.server.lua (V1) in ServerScriptService.
-2. Add IslandExpansionV2.server.lua as a SECOND Script in ServerScriptService.
-3. Keep MonsterAI.server.lua, MonsterConfig.lua, InventoryCrafting.server.lua etc. in their specified locations.
-4. Do NOT enable DemoResourceNodes.server.lua / ResourceZone.server.lua along with the V1 map; those create duplicate demo nodes.
-5. Delete the default Baseplate if it obstructs your island (your V1 island already makes its own floor).
-6. Play-test for collision, pathfinding, resource pickups, and spawn safety.
-
-COMPATIBILITY
-This V2 waits for Workspace.AnmolIslandV1 (V1 map) before generating. It is an extension, not a replacement.
-Resources use AnmolResourceNode tags and ResourceType attributes as the existing inventory collector expects.
-The arena is decorative for now: no boss damage, loot, or scripted battle. The toxic puddles are also decorative.
-
-KNOWN LIMITATIONS
-- These are blockout/prototype shapes, not detailed terrain or finished models.
-- No guaranteed enemy logic for Crystal Burrower or Heart Guardian yet.
-- Existing Monster AI V1 may spawn basic enemies at the new markers.
-- Scripts have NOT been executed or tested in Roblox Studio.
-- To use from Android, extract ZIP and upload .lua + README to GitHub as files.
+NOTES:
+- Boss uses placeholder glowing part, not final animated monster model.
+- No sword damage yet: interact with blue strike crystals to damage the boss.
+- All strikes, health changes, and boss damage are checked on the server.
+- No loot rewards, boss save data, or Hardcore/Normal split yet.
+- This code has not been tested inside Roblox Studio; fixes may be needed.
+- Avoid placing another script that builds/controls a different World Heart Boss simultaneously.
+- Server script waits for the map expansion; Studio startup order does not need to be manual.
