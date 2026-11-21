@@ -1,19 +1,34 @@
-ANMOL: LIVING WORLD — UI + SETTINGS V1
+ANMOL LIVING WORLD — COINS + SHOP + TRADING V1
 
-SETUP
-1. In Roblox Studio, create a LocalScript in StarterPlayer > StarterPlayerScripts.
-2. Paste SettingsHUD.client.lua into it.
-3. Do not add duplicate copies. Keep this version in a separate GitHub folder until final integration.
+FILES (save all in a versioned GitHub folder; do NOT delete originals yet):
+- Economy.server.lua => ServerScriptService / Script
+- EconomyHUD.client.lua => StarterPlayer / StarterPlayerScripts / LocalScript
 
-FEATURES
-- Mobile-friendly settings panel
-- Global audio toggle for the local client (SoundService.Volume)
-- Local lighting shadows/post-processing toggle (not a full graphics quality setting)
-- Hide/show other ScreenGui HUDs, with Settings button remaining accessible
+FEATURES:
+- Saved coins in separate DataStore AnmolLivingWorld_Coins_v1
+- Monsters grant coins through AnmolMonsterDefeated server BindableEvent:
+    RootStalker 12; WhisperShade 18; HollowDeer 28; CrystalBurrower 40
+- Village Shop automatically spawns next to Heart Village at (-215,4,20).
+  Use proximity prompt to open. Buy single-unit resources; these use the inventory
+  server-only AnmolGrantLoot bridge in the latest inventory code.
+- Coins trading: player types recipient's exact username and amount, recipient
+  must accept. Must be in same server within 18 studs; max 1000 coins per offer.
+- Mobile-friendly Coins HUD, Shop, Trading popup.
 
-LIMITATIONS
-- Session-only: settings are not persisted between rejoins.
-- Audio toggle affects all audio, not just music.
-- HUD visibility may conflict with other scripts that modify ScreenGui.Enabled.
-- This does not unify the many existing game HUDs into one layout.
-- Roblox Studio testing and mobile layout checks are still required.
+DEPENDENCIES:
+- Latest InventoryCrafting.server.lua from Equipment + Armor V1, which creates
+  ServerScriptService.AnmolGrantLoot (required to buy shop resource bundles).
+- Achievements.server.lua creates AnmolMonsterDefeated, and the *latest* 
+  LootRewards.server.lua fires it on server-attributed monster deaths.
+  Both scripts MUST be installed for coins from kills.
+- IslandMap.server.lua places Heart Village in the same location.
+
+IMPORTANT:
+- Coin-only trading. Item-to-item trades will be added after inventory integration.
+- DataStore access needs a published Roblox experience and Studio API setup.
+- Separate inventory/coin DataStores are NOT an atomic transaction. Test purchases
+  and disconnects carefully before releasing publicly.
+- Session lease prevents simultaneous editing across servers in normal cases,
+  but network/DataStore failures still need production testing.
+- Do not run two Economy.server.lua copies.
+- This has not yet been verified in Roblox Studio; do not guarantee functionality.
