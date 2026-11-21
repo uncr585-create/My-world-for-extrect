@@ -1,0 +1,10 @@
+Priority,Issue,Evidence,Status / next action
+P0,MonsterConfig module path mismatch,"MonsterAI requires ServerScriptService.MonsterConfig, previous package placed it in ReplicatedStorage",FIXED in corrected layout; create ModuleScript in ServerScriptService
+P0,Economy and inventory separate DataStores,Equipment purchases span two separately persisted profiles,OPEN: crash recovery and failure-path tests
+P0,Two-player trades save separately,Item/coin transfer cannot be atomic across both player profiles,OPEN: disconnect and server crash tests
+P1,Monster/loot/quest event flow,Event names appear connected but complete progression not run,OPEN: end-to-end Studio test
+P1,Map build startup order,IslandExpansion waits for AnmolIslandV1 up to 90 seconds,OPEN: test load ordering
+P1,GUI overlay and mobile layout,Multiple independent HUD scripts may overlap,OPEN: test low-end Android
+P1,Root event armor damage,Patch invokes AnmolApplyPlayerDamage if present,OPEN: test with all armor tiers
+P1,Saving during concurrent gameplay,Recent patches reduce races but do not provide transactional guarantees,OPEN: multi-player stress tests
+P2,Audio assets and animations,Placeholder asset integration may be incomplete,OPEN: asset and visual polish
