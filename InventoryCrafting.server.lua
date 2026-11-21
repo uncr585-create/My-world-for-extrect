@@ -254,6 +254,35 @@ game:BindToClose(function()
     while pending > 0 and os.clock() < deadline do task.wait(0.1) end
 end)
 
+-- Building V1 uses this server-only bridge, never a client-controlled inventory number.
+-- Add this only once. The building server invokes it after placement validation.
+local spendBridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolSpendResources")
+if not spendBridge then
+    spendBridge = Instance.new("BindableFunction")
+    spendBridge.Name = "AnmolSpendResources"
+    spendBridge.Parent = game:GetService("ServerScriptService")
+end
+spendBridge.OnInvoke = function(player, costs)
+    if typeof(player) ~= "Instance" or not player:IsA("Player") then return false, "Invalid player" end
+    if type(costs) ~= "table" then return false, "Invalid cost" end
+    local inv = inventories[player]
+    local record = records[player]
+    if not inv or not record or not record.loaded or record.closing or not record.locked then
+        return false, "Inventory not ready"
+    end
+    for item, amount in pairs(costs) do
+        if (item ~= "Wood" and item ~= "Stone") or type(amount) ~= "number"
+            or amount < 1 or amount > 50 or amount ~= math.floor(amount) then
+            return false, "Invalid materials"
+        end
+        if (inv[item] or 0) < amount then return false, "Need more " .. item end
+    end
+    for item, amount in pairs(costs) do inv[item] -= amount end
+    record.dirty = true
+    broadcast(player, "Materials used for building")
+    return true, "OK"
+end
+
 GetInventory.OnServerInvoke = function(player)
     local inv = inventories[player]
     return inv and copyInventory(inv) or newInventory()

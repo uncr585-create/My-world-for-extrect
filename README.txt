@@ -1,33 +1,39 @@
-ANMOL: LIVING WORLD — Game Modes V1 (Normal + Hardcore)
+ANMOL: LIVING WORLD — Building + Shelter V1 (mobile-prepared, UNTESTED)
 
-PC / ROBLOX STUDIO SETUP
-1. ServerScriptService -> Script: paste GameModes.server.lua
-2. StarterPlayer -> StarterPlayerScripts -> LocalScript:
-   REPLACE old MainMenu with MainMenu_Updated.client.lua (do not keep both).
-3. StarterPlayer -> StarterPlayerScripts -> LocalScript: paste GameModeHUD.client.lua
-4. Keep SurvivalSystem.server.lua, SurvivalHUD.client.lua, WorldAnger scripts,
-   and your other game systems. Do not run duplicate Main Menu scripts.
-5. Test with at least 2 players in Studio's multiplayer test.
+FILES
+1) Building.server.lua -> ServerScriptService as Script
+2) BuildingHUD.client.lua -> StarterPlayer/StarterPlayerScripts as LocalScript
+3) InventoryCrafting.server.lua -> REPLACE the previous saving-enabled
+   InventoryCrafting.server.lua from Data Saving V1 (do NOT run two copies).
+
+ALSO KEEP
+- IslandMap.server.lua (map generation, buildable ground)
+- IslandExpansionV2.server.lua (optional extra ground)
+- Normal/Hardcore mode scripts
+- Resource gathering and Inventory/Crafting UI scripts
+
+COSTS
+Wall 4 Wood + 2 Stone
+Floor 3 Wood
+Campfire 2 Wood + 3 Stone
+Shelter 8 Wood + 4 Stone
 
 HOW IT WORKS
-- Play chooses a mode on server, then spawns the character.
-- Player spawn is manual: Players.CharacterAutoLoads = false.
-- Normal: after death player is Downed for 45 seconds. Teammate can revive
-  using ProximityPrompt (Hold E or mobile prompt), otherwise respawns.
-- Hardcore: after death player is Downed for 20 seconds. If not revived,
-  character stays eliminated for the remainder of THIS SERVER SESSION.
-- Teammate revive produces a new character at standard SpawnLocation.
-  Revive-at-death-position / revive animations are future features.
+- Select a piece and tap PLACE AHEAD; it places around 12 studs in
+  front of your character. Rotate to choose direction.
+- Server verifies player, distance, ground and materials; uses a
+  server-only BindableFunction to deduct from existing persistent inventory.
+- Structures are anchored placeholders; campfires give light.
+- Build limit: 35 per player per server. Building is not saved yet.
+- Shared Heart Village is protected from building.
+- Buildings cannot overlap; some decorations and steep/raised areas
+  may still need extra collision checks in Studio.
 
-LIMITATIONS / TESTING
-- This is untested Luau. Set up and integration testing in Roblox Studio required.
-- Hardcore state is NOT persistent across rejoining another server. To enforce
-  lasting permadeath, a persistent run ID / save-state policy is needed.
-- Death during high network latency, late joining, other spawning code, or
-  scripts that call LoadCharacter independently can conflict with this prototype.
-- If you have other scripts that automatically respawn players, disable or
-  integrate those scripts before testing.
-- "Downed" is a revive window AFTER Humanoid death, not a crawling/ragdoll state.
-- Separate Hardcore damage 1.5x and item-drop behavior are NOT implemented.
-- Inventory data saving from your previous version remains separate.
-- Main Menu background asset still requires a Roblox-uploaded image ID.
+TEST IN ROBLOX STUDIO
+- Use a published test experience with DataStore access appropriately configured.
+- Test harvest -> place -> inventory deduction -> save -> reload.
+- Test Normal/Hardcore, 2 players, mobile HUD scale, and placement boundaries.
+- If all players start at the village, walk towards the forest before building.
+
+NOTE: Importing .lua files to GitHub does not automatically install them
+into Roblox. Studio setup, playtesting and publishing still required.
