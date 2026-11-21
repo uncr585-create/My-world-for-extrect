@@ -14,12 +14,18 @@ local MAX_COINS = 100000000
 local SERVER_ID = (game.JobId ~= "" and game.JobId or "studio") .. ":" .. HttpService:GenerateGUID(false)
 local sessions = {} -- player -> {balance, locked, dirty, busy, saving}
 local pending = {} -- offer id -> {from, to, amount, expires}
+local itemPending = {} -- id -> {from,to,item,count,expires}
 local lastOffer = {}
 local shopItems = {
     WoodBundle = {cost=4, gives={Wood=1}},
     StoneBundle = {cost=5, gives={Stone=1}},
     FiberBundle = {cost=4, gives={Fiber=1}},
     CrystalBundle = {cost=35, gives={Crystal=1}},
+    StoneAxe = {cost=90, equipment="StoneAxe"},
+    Sword = {cost=180, equipment="Sword"},
+    LeafVest = {cost=125, equipment="LeafVest"},
+    StoneArmor = {cost=350, equipment="StoneArmor"},
+    CrystalArmor = {cost=950, equipment="CrystalArmor"},
 }
 local lootCoins = {RootStalker=12, WhisperShade=18, HollowDeer=28, CrystalBurrower=40}
 
@@ -34,6 +40,7 @@ local Action = getRemote("Action")
 local Update = getRemote("Update")
 local Offer = getRemote("TradeOffer")
 local OpenShop = getRemote("OpenShop")
+local ItemTradeOffer = getRemote("ItemTradeOffer")
 local function amount(n)
     return type(n)=="number" and n==n and n>=0 and n<=MAX_COINS and math.floor(n) or 0
 end
@@ -55,7 +62,7 @@ local function load(player)
             if old.owner and old.owner~=SERVER_ID and lease>os.time() then
                 return nil -- locked by another active server
             end
-            return {coins=amount(old.coins),owner=SERVER_ID,lockUntil=os.time()+LEASE}
+            return {coins=amount(old.coins),questClaims=type(old.questClaims)=="table" and old.questClaims or {},owner=SERVER_ID,lockUntil=os.time()+LEASE}
         end)
     end)
     if player.Parent~=Players then return end
@@ -69,17 +76,22 @@ local function load(player)
 end
 local function save(player,release)
     local s=sessions[player]
-    if not s or not s.locked or s.saving then return end
+    if not s or not s.locked or s.saving or s.busy then return end
     s.saving=true
     local balance=s.balance
     local ok,err=pcall(function()
         STORE:UpdateAsync(key(player),function(old)
             if type(old)~="table" or old.owner~=SERVER_ID then return nil end
-            return {coins=balance,owner=release and nil or SERVER_ID,
+            return {coins=balance,questClaims=type(old.questClaims)=="table" and old.questClaims or {},owner=release and nil or SERVER_ID,
                 lockUntil=release and 0 or (os.time()+LEASE)}
         end)
     end)
-    if not ok then warn("[Anmol Economy] Save failed",player.Name,err) else s.dirty=false end
+    if not ok then
+        warn("[Anmol Economy] Save failed",player.Name,err)
+    elseif s.balance == balance then
+        -- A grant/trade during the yielding UpdateAsync must not be marked saved.
+        s.dirty=false
+    end
     s.saving=false
 end
 local function ready(player)
@@ -128,7 +140,18 @@ local function buy(player,id)
     s.dirty=true
     -- Bundles give only one unit, so inventory capacity cannot cause
     -- a partial purchase: it either grants one or refuses entirely.
-    local success=grant(player,item.gives)
+    local success = false
+    if item.equipment then
+        local bridge = SS:FindFirstChild("AnmolInventoryTradeV2")
+        if bridge and bridge:IsA("BindableFunction") then
+            local ok,res = pcall(function()
+                return bridge:Invoke("GrantEquipment",player,nil,item.equipment,1)
+            end)
+            success = ok and res == true
+        end
+    else
+        success = grant(player,item.gives)
+    end
     if not success then s.balance+=item.cost end
     s.dirty=true;s.busy=false;sync(player)
     msg(player,success and ("Purchased "..id) or "Purchase failed (inventory full or not ready)")
@@ -225,4 +248,126 @@ game:BindToClose(function()
     local untilTime=os.clock()+25
     while count>0 and os.clock()<untilTime do task.wait(.1) end
 end)
+
+-- Quests V1: server-only, idempotent reward grant; requires a loaded coin profile.
+-- Reward ids are unique per UTC day and quest name.
+local questReward = SS:FindFirstChild("AnmolQuestReward")
+if not questReward then
+    questReward = Instance.new("BindableFunction")
+    questReward.Name = "AnmolQuestReward"
+    questReward.Parent = SS
+end
+local ALLOWED_QUEST_PAY = {TreeDay=35, CrystalDay=55, CraftDay=45, HuntDay=70}
+questReward.OnInvoke = function(player, day, questId)
+    if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then return false end
+    if type(day) ~= "number" or day ~= math.floor(os.time()/86400) then return false end
+    if type(questId) ~= "string" or not ALLOWED_QUEST_PAY[questId] then return false end
+    local s = ready(player)
+    if not s then return false end
+    s.busy = true
+    local rewardId = tostring(day) .. ":" .. questId
+    local updated
+    local ok, err = pcall(function()
+        updated = STORE:UpdateAsync(key(player), function(old)
+            if type(old) ~= "table" or old.owner ~= SERVER_ID then return nil end
+            local claims = type(old.questClaims)=="table" and old.questClaims or {}
+            if not claims[rewardId] then
+                claims[rewardId] = true
+                -- Include in-memory shop, kill and trade changes in this write.
+                -- Without this, the quest UpdateAsync can overwrite unsaved coins.
+                old.coins = math.min(MAX_COINS, amount(s.balance) + ALLOWED_QUEST_PAY[questId])
+            end
+            -- Keep 14-day claim history to avoid unbounded DataStore growth.
+            for claim in pairs(claims) do
+                local claimDay = tonumber(tostring(claim):match("^(%d+):"))
+                if claimDay and claimDay < day-14 then claims[claim] = nil end
+            end
+            old.questClaims = claims
+            old.lockUntil = os.time()+LEASE
+            return old
+        end)
+    end)
+    if ok and updated and sessions[player] == s then
+        s.balance = amount(updated.coins)
+        s.dirty = false
+        sync(player)
+    else
+        warn("[Anmol Quests] Coin grant unavailable", err)
+    end
+    s.busy = false
+    return ok and updated ~= nil
+end
+
 print("[Anmol] Coins + Village Shop + Trading V1 ready")
+
+
+-- Trading V2: item offers are requested by a player, validated on server,
+-- and only applied when the recipient accepts while both are nearby.
+local TRADE_ITEMS = {Wood=true, Stone=true, Crystal=true, Fiber=true,
+    HollowAntler=true, CrystalShard=true, StoneAxe=true, Sword=true,
+    Torch=true, Bandage=true, NoiseDecoy=true, AntlerCharm=true,
+    CrystalBlade=true, LeafVest=true, StoneArmor=true, CrystalArmor=true}
+local function cancelItemOffer(id, message)
+    local trade=itemPending[id]
+    if not trade then return end
+    itemPending[id]=nil
+    if message then msg(trade.from,message);msg(trade.to,message) end
+end
+local function offerItem(player,targetId,itemName,count)
+    if not ready(player) or type(targetId)~="number" or type(itemName)~="string"
+        or not TRADE_ITEMS[itemName] or type(count)~="number"
+        or count~=math.floor(count) or count<1 or count>10 then return end
+    local target=Players:GetPlayerByUserId(targetId)
+    if not target or target==player or not ready(target) or not near(player,target) then
+        msg(player,"Stand near another player to trade");return end
+    local now=os.clock()
+    if now-(lastOffer[player] or -100)<5 then return end
+    lastOffer[player]=now
+    for id,t in pairs(itemPending) do if t.from==player then cancelItemOffer(id,nil) end end
+    local id=HttpService:GenerateGUID(false)
+    itemPending[id]={from=player,to=target,item=itemName,count=count,expires=now+30}
+    ItemTradeOffer:FireClient(target,id,player.DisplayName,itemName,count)
+    msg(player,"Item offer sent to "..target.DisplayName)
+end
+local function answerItem(player,id,accepted)
+    if type(id)~="string" or #id>70 then return end
+    local t=itemPending[id]
+    if not t or t.to~=player then return end
+    itemPending[id]=nil
+    if not accepted then msg(t.from,"Item trade declined");return end
+    if os.clock()>t.expires or not near(t.from,player) then
+        msg(player,"Trade expired or players too far");return end
+    if not ready(player) or not ready(t.from) then
+        msg(player,"Player data not ready");return end
+    local bridge=SS:FindFirstChild("AnmolInventoryTradeV2")
+    if not bridge or not bridge:IsA("BindableFunction") then
+        msg(player,"Inventory trade bridge unavailable");return end
+    local ok,result,reason=pcall(function()
+        return bridge:Invoke("Transfer",t.from,player,t.item,t.count)
+    end)
+    if not ok or not result then
+        msg(player,"Trade failed: "..tostring(reason or "unavailable"))
+        msg(t.from,"Item trade failed")
+        return
+    end
+    msg(t.from,"Sent "..t.count.." "..t.item.." to "..player.DisplayName)
+    msg(player,"Received "..t.count.." "..t.item.." from "..t.from.DisplayName)
+end
+Action.OnServerEvent:Connect(function(player,kind,a,b,c)
+    if kind=="ItemOffer" then offerItem(player,a,b,c)
+    elseif kind=="ItemAccept" then answerItem(player,a,true)
+    elseif kind=="ItemDecline" then answerItem(player,a,false) end
+end)
+Players.PlayerRemoving:Connect(function(player)
+    for id,t in pairs(itemPending) do
+        if t.from==player or t.to==player then cancelItemOffer(id,nil) end
+    end
+end)
+task.spawn(function()
+    while true do
+        task.wait(5)
+        for id,t in pairs(itemPending) do
+            if os.clock()>t.expires then cancelItemOffer(id,"Item trade expired") end
+        end
+    end
+end)
