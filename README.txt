@@ -1,17 +1,19 @@
-ANMOL: LIVING WORLD - New Player Tutorial V1
+ANMOL: LIVING WORLD — UI + SETTINGS V1
 
-FILES:
-Tutorial.server.lua -> ServerScriptService (Script)
-TutorialHUD.client.lua -> StarterPlayer > StarterPlayerScripts (LocalScript)
+SETUP
+1. In Roblox Studio, create a LocalScript in StarterPlayer > StarterPlayerScripts.
+2. Paste SettingsHUD.client.lua into it.
+3. Do not add duplicate copies. Keep this version in a separate GitHub folder until final integration.
 
-FEATURES:
-- Six-page beginner walkthrough: welcome, survival, gathering, crafting, combat, World Anger.
-- Mobile-friendly Next/Finish buttons.
-- Server-side saved page progress, using AnmolTutorial_v1 DataStore.
-- Completed tutorial stays hidden when rejoining.
+FEATURES
+- Mobile-friendly settings panel
+- Global audio toggle for the local client (SoundService.Volume)
+- Local lighting shadows/post-processing toggle (not a full graphics quality setting)
+- Hide/show other ScreenGui HUDs, with Settings button remaining accessible
 
-NOTES:
-- This is a reading walkthrough; clicking Next does not verify that the player performed an action.
-- Studio API Services / published experience needed for DataStore testing.
-- No existing script needs replacing. Store this ZIP in a separate version folder.
-- Not yet tested in Roblox Studio. Test UI, saving, and mobile layout before release.
+LIMITATIONS
+- Session-only: settings are not persisted between rejoins.
+- Audio toggle affects all audio, not just music.
+- HUD visibility may conflict with other scripts that modify ScreenGui.Enabled.
+- This does not unify the many existing game HUDs into one layout.
+- Roblox Studio testing and mobile layout checks are still required.
