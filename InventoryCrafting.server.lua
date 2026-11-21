@@ -190,7 +190,24 @@ local function saveSession(player, release)
     record.saving = false
     if success and type(result) == "table" then
         if release then record.locked = false end
-        record.dirty = false
+        -- Preserve dirty state if a loot grant/craft/transfer occurred while
+        -- UpdateAsync yielded. Otherwise autosave can silently lose changes.
+        local sameInventory = true
+        for item in pairs(ITEMS) do
+            if (record.inventory[item] or 0) ~= (inventory[item] or 0) then
+                sameInventory = false
+                break
+            end
+        end
+        local currentProgress = safeProgress(record.progress)
+        local sameProgress = true
+        for key, value in pairs(progress) do
+            if currentProgress[key] ~= value then
+                sameProgress = false
+                break
+            end
+        end
+        record.dirty = not (sameInventory and sameProgress)
         return true
     end
     warn("[Anmol Save] Save failed for", player.UserId, tostring(result))
@@ -336,7 +353,7 @@ grantBridge.OnInvoke = function(player, rewards)
     if type(rewards) ~= "table" then return false, {} end
     local record = records[player]
     local inv = inventories[player]
-    if not record or not record.loaded or not record.locked or record.closing or not inv then
+    if not record or not record.loaded or not record.locked or record.closing or record.saving or not inv then
         return false, {}
     end
     -- Rewards only use collected material types (no free tools or crafted weapons).
