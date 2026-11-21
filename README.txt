@@ -1,26 +1,54 @@
-ANMOL: LIVING WORLD — World Heart Boss V1
+ANMOL: LIVING WORLD — PLAYER DATA SAVING V1
+==========================================
 
-CONTENTS:
-- WorldHeartBoss.server.lua
-- WorldHeartBossHUD.client.lua
+FILES INCLUDED
+- InventoryCrafting.server.lua  (UPDATED replacement; contains saving)
+- README.txt
 
-INSTALL IN ROBLOX STUDIO (later, when PC is available):
-1) Keep IslandMap.server.lua and IslandExpansionV2.server.lua in ServerScriptService.
-2) Put WorldHeartBoss.server.lua in ServerScriptService as a Script.
-3) Put WorldHeartBossHUD.client.lua in StarterPlayer > StarterPlayerScripts as a LocalScript.
-4) Keep WorldAnger.server.lua in ServerScriptService for anger integration.
-5) Press Play in Studio. Travel to World Heart area (-116, 485) on the island.
-6) Start battle at GREEN pedestal by the arena entrance.
-7) Channel Strike at BLUE crystals around guardian. Dodge RED circle warnings.
-8) Boss has 3 phases (100-67%, 66-34%, 33-0%). Higher World Anger increases attack damage.
-9) On boss defeat, WorldHeartHealed server event lowers Anger by 25.
-10) Boss resets 18 seconds after win/fail. Trial fails after 150 seconds or 45 seconds without any strike.
+PURPOSE
+Saves player inventory and 3 progress counters across game sessions:
+  Wood, Stone, Crystal, Fiber, StoneAxe, Torch, Bandage, NoiseDecoy
+  TreesCut, CrystalsMined, ItemsCrafted
 
-NOTES:
-- Boss uses placeholder glowing part, not final animated monster model.
-- No sword damage yet: interact with blue strike crystals to damage the boss.
-- All strikes, health changes, and boss damage are checked on the server.
-- No loot rewards, boss save data, or Hardcore/Normal split yet.
-- This code has not been tested inside Roblox Studio; fixes may be needed.
-- Avoid placing another script that builds/controls a different World Heart Boss simultaneously.
-- Server script waits for the map expansion; Studio startup order does not need to be manual.
+IMPORTANT: REPLACE, DON'T ADD DUPLICATES
+1. KEEP your original ResourceZone / IslandMap / Expansion / World Anger scripts as previously planned.
+2. REPLACE the OLD InventoryCrafting.server.lua from Resource Collection V1
+   with THIS InventoryCrafting.server.lua inside ServerScriptService.
+3. DO NOT run both InventoryCrafting.server.lua versions at once.
+4. KEEP the original InventoryCraftingHUD.client.lua in StarterPlayerScripts.
+5. KEEP SurvivalSystem.server.lua and SurvivalHUD.client.lua in their places.
+6. Do not add a separate DataSaving.server.lua. Saving is integrated into the replacement.
+
+STUDIO & DATASTORE SETUP (PC LATER)
+- Publish the experience before testing real DataStore persistence.
+- Game Settings > Security > Enable Studio Access to API Services only for
+  a test environment (prefer a separate test experience); live games have
+  data store access on Roblox servers without this Studio toggle.
+- Test in a published private test experience. DataStore requests can fail or
+  be throttled; use Developer Console to inspect warnings.
+- If a player's save cannot be loaded, the script KICKS instead of giving
+  them an empty inventory and risking an overwrite.
+- Autosave every ~60 seconds and PlayerRemoving / BindToClose backups.
+- Temporary session lease prevents typical two-server save overwrites.
+- In case of forced server crash, player may have to wait up to 180 seconds
+  for a stale lease to expire before rejoining successfully.
+
+WHAT IS NOT YET SAVED
+- Hunger, stamina, health and character position (reset each session)
+- Normal/Hardcore selection (current main menu is client-only)
+- Boss wins, map changes, World Anger (server-wide), cosmetics, buildings
+- Equipment effects or item usage (not implemented yet)
+
+TEST CHECKLIST
+A. Collect 3 Wood and 1 Crystal; open inventory and verify quantities.
+B. Craft an item; verify materials decrease and crafted item increases.
+C. Leave the test server and rejoin after the first session closes;
+   check the same items still exist.
+D. During a deliberately disabled DataStore test, check that loading fails
+   safely, rather than allowing overwriting of an old save.
+
+NOTES
+- This code has NOT been run in Roblox Studio or live Roblox; verify before launch.
+- DataStore name: AnmolLivingWorld_PlayerData_v1 (do not change casually).
+- Counts are clamped, and inventory is capped at 100 total items on load.
+- Never expose save modification remotes directly to players.

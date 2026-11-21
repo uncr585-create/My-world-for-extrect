@@ -1,10 +1,12 @@
 -- ANMOL: LIVING WORLD / Inventory + Crafting V1 (Resource Integration)
 -- Install as Script in ServerScriptService.
--- Server-authoritative inventory, crafting, node harvesting. No saving in V1.
+-- Server-authoritative inventory, crafting, harvesting and DataStore persistence.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CollectionService = game:GetService("CollectionService")
+local DataStoreService = game:GetService("DataStoreService")
+local HttpService = game:GetService("HttpService")
 
 local MAX_TOTAL_ITEMS = 100
 local HARVEST_DISTANCE = 15
@@ -21,6 +23,45 @@ local RECIPES = {
 }
 local RECIPE_ORDER = { "StoneAxe", "Torch", "Bandage", "NoiseDecoy" }
 local NODE_YIELDS = { Wood = 3, Stone = 2, Crystal = 1, Fiber = 2 }
+
+-- DataStore V1. Change DATASTORE_NAME only if you intentionally want a new save slot.
+local DATASTORE_NAME = "AnmolLivingWorld_PlayerData_v1"
+local SAVE_INTERVAL = 60
+local LOCK_SECONDS = 180
+local RETRIES = 3
+local dataStore = DataStoreService:GetDataStore(DATASTORE_NAME)
+local sessionId = (game.JobId ~= "" and game.JobId or "studio") .. ":" .. HttpService:GenerateGUID(false)
+local records = {} -- [player] = {inventory, progress, loaded, saving, dirty, closing, locked}
+
+local function sanitizeCount(value, maxCount)
+    if type(value) ~= "number" or value ~= value then return 0 end
+    return math.clamp(math.floor(value), 0, maxCount)
+end
+
+local function safeProgress(raw)
+    raw = type(raw) == "table" and raw or {}
+    return {
+        TreesCut = sanitizeCount(raw.TreesCut, 100000000),
+        CrystalsMined = sanitizeCount(raw.CrystalsMined, 100000000),
+        ItemsCrafted = sanitizeCount(raw.ItemsCrafted, 100000000),
+    }
+end
+
+local function playerKey(player)
+    return "Player_" .. tostring(player.UserId)
+end
+
+local function retryOperation(fn)
+    local lastError
+    for attempt = 1, RETRIES do
+        local ok, result = pcall(fn)
+        if ok then return true, result end
+        lastError = tostring(result)
+        if attempt < RETRIES then task.wait(attempt * 2) end
+    end
+    return false, lastError
+end
+
 
 local folder = ReplicatedStorage:FindFirstChild("AnmolInventoryRemotes")
 if not folder then
@@ -43,7 +84,7 @@ local Snapshot = remote("Snapshot", "RemoteEvent")
 local CraftRequest = remote("CraftRequest", "RemoteEvent")
 local GetInventory = remote("GetInventory", "RemoteFunction")
 
-local inventories = {} -- [player] = { Wood = 0, ... }
+local inventories = {} -- [player] = server-validated saved item counts
 local lastCraftAt = {}
 local nodeBusy = {} -- [instance] = true while depleted
 
@@ -67,18 +108,152 @@ local function broadcast(player, message)
     if inv then Snapshot:FireClient(player, copyInventory(inv), message or "") end
 end
 
-Players.PlayerAdded:Connect(function(player)
-    inventories[player] = newInventory()
+-- Claim a DataStore session before enabling inventory actions. This helps prevent
+-- two servers editing the same player data simultaneously.
+local function openSession(player)
+    local key = playerKey(player)
+    local success, stored = retryOperation(function()
+        return dataStore:UpdateAsync(key, function(previous)
+            previous = type(previous) == "table" and previous or {}
+            local lease = type(previous.lease) == "table" and previous.lease or nil
+            if lease and lease.id ~= sessionId
+                and type(lease.untilTime) == "number"
+                and lease.untilTime > os.time() then
+                return nil -- another session owns this save
+            end
+            return {
+                version = 1,
+                inventory = type(previous.inventory) == "table" and previous.inventory or {},
+                progress = type(previous.progress) == "table" and previous.progress or {},
+                lease = { id = sessionId, untilTime = os.time() + LOCK_SECONDS },
+                updatedAt = previous.updatedAt,
+            }
+        end)
+    end)
+    if not success or type(stored) ~= "table" or type(stored.lease) ~= "table"
+        or stored.lease.id ~= sessionId then
+        return nil, success and "Data already open in another server" or tostring(stored)
+    end
+    local inv = newInventory()
+    local raw = type(stored.inventory) == "table" and stored.inventory or {}
+    local remaining = MAX_TOTAL_ITEMS
+    -- Consistent order makes total-cap sanitization deterministic.
+    for _, item in ipairs({"Wood", "Stone", "Crystal", "Fiber", "StoneAxe", "Torch", "Bandage", "NoiseDecoy"}) do
+        inv[item] = math.min(sanitizeCount(raw[item], MAX_TOTAL_ITEMS), remaining)
+        remaining -= inv[item]
+    end
+    return {inventory = inv, progress = safeProgress(stored.progress), loaded = true,
+        saving = false, dirty = false, closing = false, locked = true}
+end
+
+local function setProgressAttributes(player, record)
+    player:SetAttribute("AnmolTreesCut", record.progress.TreesCut)
+    player:SetAttribute("AnmolCrystalsMined", record.progress.CrystalsMined)
+    player:SetAttribute("AnmolItemsCrafted", record.progress.ItemsCrafted)
+end
+
+local function saveSession(player, release)
+    local record = records[player]
+    if not record or not record.loaded or not record.locked then return false end
+    while record.saving do task.wait(0.1) end
+    record.saving = true
+    -- Capture server-validated snapshot; never trust numbers supplied by the client.
+    local inventory = copyInventory(record.inventory)
+    local progress = safeProgress(record.progress)
+    local success, result = retryOperation(function()
+        return dataStore:UpdateAsync(playerKey(player), function(previous)
+            if type(previous) ~= "table" or type(previous.lease) ~= "table"
+                or previous.lease.id ~= sessionId then
+                return nil -- don't overwrite a save owned by another server
+            end
+            local nextData = {
+                version = 1,
+                inventory = inventory,
+                progress = progress,
+                updatedAt = os.time(),
+            }
+            if not release then
+                nextData.lease = {id = sessionId, untilTime = os.time() + LOCK_SECONDS}
+            end
+            return nextData
+        end)
+    end)
+    record.saving = false
+    if success and type(result) == "table" then
+        if release then record.locked = false end
+        record.dirty = false
+        return true
+    end
+    warn("[Anmol Save] Save failed for", player.UserId, tostring(result))
+    return false
+end
+
+local function setupPlayer(player)
+    local record, reason = openSession(player)
+    if not record then
+        warn("[Anmol Save] Load failed for", player.UserId, reason)
+        player:Kick("Unable to safely load your save. Please retry in a moment.")
+        return
+    end
+    if not player.Parent then
+        -- Disconnect occurred while loading; create record to release the lease.
+        records[player] = record
+        saveSession(player, true)
+        records[player] = nil
+        return
+    end
+    records[player] = record
+    inventories[player] = record.inventory
     lastCraftAt[player] = 0
+    setProgressAttributes(player, record)
+    broadcast(player, "Your inventory is loaded")
+end
+
+Players.PlayerAdded:Connect(function(player)
+    task.spawn(setupPlayer, player)
 end)
 for _, player in ipairs(Players:GetPlayers()) do
-    inventories[player] = newInventory()
-    lastCraftAt[player] = 0
+    task.spawn(setupPlayer, player)
 end
+
 Players.PlayerRemoving:Connect(function(player)
+    local record = records[player]
+    if record then
+        record.closing = true
+        saveSession(player, true)
+    end
     inventories[player] = nil
+    records[player] = nil
     lastCraftAt[player] = nil
 end)
+
+-- Save regularly (also refreshes the server lease even if no items changed).
+task.spawn(function()
+    while true do
+        task.wait(SAVE_INTERVAL)
+        for player, record in pairs(records) do
+            if player.Parent and not record.closing then
+                task.spawn(function() saveSession(player, false) end)
+            end
+        end
+    end
+end)
+
+game:BindToClose(function()
+    local pending = 0
+    for player, record in pairs(records) do
+        if record.loaded and record.locked then
+            pending += 1
+            task.spawn(function()
+                saveSession(player, true)
+                pending -= 1
+            end)
+        end
+    end
+    local deadline = os.clock() + 25
+    while pending > 0 and os.clock() < deadline do task.wait(0.1) end
+end)
+
 GetInventory.OnServerInvoke = function(player)
     local inv = inventories[player]
     return inv and copyInventory(inv) or newInventory()
@@ -88,7 +263,8 @@ CraftRequest.OnServerEvent:Connect(function(player, recipeName)
     if type(recipeName) ~= "string" or #recipeName > 40 then return end
     local recipe = RECIPES[recipeName]
     local inv = inventories[player]
-    if not inv or not recipe then return end
+    local record = records[player]
+    if not inv or not record or record.closing or not recipe then return end
     local now = os.clock()
     if now - (lastCraftAt[player] or 0) < CRAFT_COOLDOWN then return end
     lastCraftAt[player] = now
@@ -106,6 +282,9 @@ CraftRequest.OnServerEvent:Connect(function(player, recipeName)
     end
     for ingredient, needed in pairs(recipe) do inv[ingredient] -= needed end
     inv[recipeName] += 1
+    record.progress.ItemsCrafted += 1
+    record.dirty = true
+    setProgressAttributes(player, record)
     broadcast(player, "Crafted " .. recipeName)
 end)
 
@@ -135,6 +314,8 @@ local function setupNode(node)
     prompt.Triggered:Connect(function(player)
         if nodeBusy[node] or not node.Parent then return end
         local inv = inventories[player]
+        local record = records[player]
+        if not record or record.closing then return end
         local character = player.Character
         local root = character and character:FindFirstChild("HumanoidRootPart")
         local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -150,6 +331,10 @@ local function setupNode(node)
         prompt.Enabled = false
         local gained = math.min(room, yieldCount)
         inv[kind] += gained
+        if kind == "Wood" then record.progress.TreesCut += 1 end
+        if kind == "Crystal" then record.progress.CrystalsMined += gained end
+        record.dirty = true
+        setProgressAttributes(player, record)
         broadcast(player, "+" .. gained .. " " .. kind)
         -- World Anger V1 server-only integration; only successful harvests count.
         local worldAction = game:GetService("ServerScriptService"):FindFirstChild("AnmolWorldAction")
@@ -170,4 +355,4 @@ end
 
 for _, node in ipairs(CollectionService:GetTagged("AnmolResourceNode")) do setupNode(node) end
 CollectionService:GetInstanceAddedSignal("AnmolResourceNode"):Connect(setupNode)
-print("[Anmol] Inventory + Crafting V1 (Resource Integration) started; recipes:", table.concat(RECIPE_ORDER, ", "))
+print("[Anmol] Inventory + Crafting + Saving V1 started; recipes:", table.concat(RECIPE_ORDER, ", "))
