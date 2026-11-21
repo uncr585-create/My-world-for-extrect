@@ -1,0 +1,13 @@
+Area,Finding,Status
+Script count,44 unique Luau files in integration package,Verified from ZIP
+Inventory bridge,AnmolGrantLoot and AnmolTradeInventory are defined in inventory script,Static check
+Economy quest bridge,AnmolQuestReward is defined and invoked by DailyQuests,Static check
+Quest stat counters,"AnmolTreesCut, AnmolCrystalsMined, AnmolItemsCrafted are written by InventoryCrafting",Static check
+Monster kill event,AnmolMonsterDefeated is used by Economy and LootRewards,Static check
+DataStore transaction,Coins and inventory use independent storage; buying gear may not be atomic across stores,Risk: manual test
+Quest claim persistence,Quest rewards and quest claim state use separate storage; retry/rejoin behavior needs test,Risk: manual test
+Remote integration,Same remote/event names and argument shapes across all systems,Not fully verified
+Spawn/map overlap,IslandMap and IslandExpansionV2 objects do not overlap,Not verified without Studio
+Mobile GUI,All HUDs fit small screens and do not overlap,Not verified without Studio
+Combat/armor,All damage pathways apply armor correctly,Known risk: event roots use Humanoid:TakeDamage
+Roblox Studio runtime,All scripts compile and execute correctly,Not tested

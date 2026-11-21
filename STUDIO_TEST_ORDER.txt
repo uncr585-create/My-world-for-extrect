@@ -1,0 +1,8 @@
+1. Open new private Roblox Studio experience and enable Output.
+2. Add one server script at a time; resolve syntax/runtime errors.
+3. Install client scripts and verify no duplicated HUDs.
+4. Test resources, crafting and saving with one player.
+5. Test coins, shop, quest rewards and reconnect.
+6. Test team, trade and monster drops with two players.
+7. Test events, boss, hardcore and 8-player performance.
+8. Record errors/screenshots for the next targeted patch.
