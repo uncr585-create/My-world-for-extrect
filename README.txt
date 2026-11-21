@@ -1,54 +1,33 @@
-ANMOL: LIVING WORLD — PLAYER DATA SAVING V1
-==========================================
+ANMOL: LIVING WORLD — Game Modes V1 (Normal + Hardcore)
 
-FILES INCLUDED
-- InventoryCrafting.server.lua  (UPDATED replacement; contains saving)
-- README.txt
+PC / ROBLOX STUDIO SETUP
+1. ServerScriptService -> Script: paste GameModes.server.lua
+2. StarterPlayer -> StarterPlayerScripts -> LocalScript:
+   REPLACE old MainMenu with MainMenu_Updated.client.lua (do not keep both).
+3. StarterPlayer -> StarterPlayerScripts -> LocalScript: paste GameModeHUD.client.lua
+4. Keep SurvivalSystem.server.lua, SurvivalHUD.client.lua, WorldAnger scripts,
+   and your other game systems. Do not run duplicate Main Menu scripts.
+5. Test with at least 2 players in Studio's multiplayer test.
 
-PURPOSE
-Saves player inventory and 3 progress counters across game sessions:
-  Wood, Stone, Crystal, Fiber, StoneAxe, Torch, Bandage, NoiseDecoy
-  TreesCut, CrystalsMined, ItemsCrafted
+HOW IT WORKS
+- Play chooses a mode on server, then spawns the character.
+- Player spawn is manual: Players.CharacterAutoLoads = false.
+- Normal: after death player is Downed for 45 seconds. Teammate can revive
+  using ProximityPrompt (Hold E or mobile prompt), otherwise respawns.
+- Hardcore: after death player is Downed for 20 seconds. If not revived,
+  character stays eliminated for the remainder of THIS SERVER SESSION.
+- Teammate revive produces a new character at standard SpawnLocation.
+  Revive-at-death-position / revive animations are future features.
 
-IMPORTANT: REPLACE, DON'T ADD DUPLICATES
-1. KEEP your original ResourceZone / IslandMap / Expansion / World Anger scripts as previously planned.
-2. REPLACE the OLD InventoryCrafting.server.lua from Resource Collection V1
-   with THIS InventoryCrafting.server.lua inside ServerScriptService.
-3. DO NOT run both InventoryCrafting.server.lua versions at once.
-4. KEEP the original InventoryCraftingHUD.client.lua in StarterPlayerScripts.
-5. KEEP SurvivalSystem.server.lua and SurvivalHUD.client.lua in their places.
-6. Do not add a separate DataSaving.server.lua. Saving is integrated into the replacement.
-
-STUDIO & DATASTORE SETUP (PC LATER)
-- Publish the experience before testing real DataStore persistence.
-- Game Settings > Security > Enable Studio Access to API Services only for
-  a test environment (prefer a separate test experience); live games have
-  data store access on Roblox servers without this Studio toggle.
-- Test in a published private test experience. DataStore requests can fail or
-  be throttled; use Developer Console to inspect warnings.
-- If a player's save cannot be loaded, the script KICKS instead of giving
-  them an empty inventory and risking an overwrite.
-- Autosave every ~60 seconds and PlayerRemoving / BindToClose backups.
-- Temporary session lease prevents typical two-server save overwrites.
-- In case of forced server crash, player may have to wait up to 180 seconds
-  for a stale lease to expire before rejoining successfully.
-
-WHAT IS NOT YET SAVED
-- Hunger, stamina, health and character position (reset each session)
-- Normal/Hardcore selection (current main menu is client-only)
-- Boss wins, map changes, World Anger (server-wide), cosmetics, buildings
-- Equipment effects or item usage (not implemented yet)
-
-TEST CHECKLIST
-A. Collect 3 Wood and 1 Crystal; open inventory and verify quantities.
-B. Craft an item; verify materials decrease and crafted item increases.
-C. Leave the test server and rejoin after the first session closes;
-   check the same items still exist.
-D. During a deliberately disabled DataStore test, check that loading fails
-   safely, rather than allowing overwriting of an old save.
-
-NOTES
-- This code has NOT been run in Roblox Studio or live Roblox; verify before launch.
-- DataStore name: AnmolLivingWorld_PlayerData_v1 (do not change casually).
-- Counts are clamped, and inventory is capped at 100 total items on load.
-- Never expose save modification remotes directly to players.
+LIMITATIONS / TESTING
+- This is untested Luau. Set up and integration testing in Roblox Studio required.
+- Hardcore state is NOT persistent across rejoining another server. To enforce
+  lasting permadeath, a persistent run ID / save-state policy is needed.
+- Death during high network latency, late joining, other spawning code, or
+  scripts that call LoadCharacter independently can conflict with this prototype.
+- If you have other scripts that automatically respawn players, disable or
+  integrate those scripts before testing.
+- "Downed" is a revive window AFTER Humanoid death, not a crawling/ragdoll state.
+- Separate Hardcore damage 1.5x and item-drop behavior are NOT implemented.
+- Inventory data saving from your previous version remains separate.
+- Main Menu background asset still requires a Roblox-uploaded image ID.
