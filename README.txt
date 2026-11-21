@@ -1,32 +1,25 @@
-ANMOL: LIVING WORLD — World Healing + Nature Reaction V1
+ANMOL: LIVING WORLD — Monster AI V2
 
-WHAT'S INCLUDED
-- WorldHealing.server.lua : 6 healing plants with Hold E / mobile ProximityPrompt.
-- WorldHealingHUD.client.lua : informative nature status banner.
+INSTALL
+- Keep existing MonsterAI.server.lua and MonsterConfig.lua from V1.
+- Add AdvancedMonsters.server.lua to ServerScriptService as a Script.
+- Keep WorldAnger.server.lua and IslandMap.server.lua + IslandExpansionV2.server.lua enabled.
+- Adds models to Workspace.AnmolMonsters for existing Combat to hit them.
 
-ROBLOX STUDIO SETUP (when you have a PC)
-1. Keep WorldAnger.server.lua (required). It must create:
-   ReplicatedStorage.AnmolWorldState.Anger and ServerScriptService.AnmolWorldAction.
-2. Keep IslandMap.server.lua (recommended) to create AnmolIslandV1.
-3. Add WorldHealing.server.lua as a Script under ServerScriptService.
-4. Add WorldHealingHUD.client.lua as a LocalScript under StarterPlayer > StarterPlayerScripts.
-5. Start a Play test, walk to glowing plant placeholders in the forest,
-   then hold E (or use the Roblox mobile ProximityPrompt button).
-6. Verify World Anger drops 8 points per healing event, unless already 0.
+SPAWN POINTS
+- Crystal Burrower uses Workspace.MonsterSpawns.AnmolCrystalSpawn_1 from Island Expansion V2.
+- Hollow Deer uses Workspace.MonsterSpawns.AnmolForestDeerSpawn if created; otherwise first non-crystal/non-marsh/non-heart marker from V1 Island map.
+- If neither marker exists, the script waits instead of spawning at the wrong location.
 
 BEHAVIOR
-- 6 healable plant locations in Whispering Forest / village border.
-- One successful heal reduces World Anger by 8.
-- Each plant has a 55-second cooldown; no costs are charged.
-- When World Anger increases: only this module's decorative vine parts
-  change color. It will NOT move actual terrain or alter base geometry.
-- Current V1 doesn't have healing crystals, boss pacification, or vegetation
-  restoration persistence. Those require later integration/testing.
+- Hollow Deer (125 HP, 17 damage) is neutral until hit or World Anger >=80.
+- Crystal Burrower (180 HP, 22 damage) detects nearby players; CrystalMined world action increases its detection for 18 seconds.
+- Server controls targeting, pathfinding, attacks and damage.
+- One of each special monster alive at a time, respawn after death.
 
-COMPATIBILITY NOTES
-- Do not add a second copy of WorldAnger.server.lua.
-- Works alongside the existing island map, weather, combat, and inventory code.
-- WorldHeartHealed (-25) remains available in WorldAnger but isn't triggered
-  by this V1. We will wire it into the heart interaction later.
-- HUD may overlap earlier HUDs; adjust positioning during Studio tests.
-- Scripts have not been tested in Roblox Studio. Tested logic is not guaranteed.
+LIMITATIONS
+- Placeholder R6 models, not final deer/worm art or animations.
+- Crystal alert has no exact mining position yet, so detection boost is global to this monster.
+- LootRewards V1 ONLY has drops for RootStalker and WhisperShade; these new monsters provide no loot until its reward table is extended.
+- Normal/Hardcore damage multipliers not connected yet.
+- Test in Roblox Studio; not yet tested.
