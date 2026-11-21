@@ -62,7 +62,7 @@ local function load(player)
             if old.owner and old.owner~=SERVER_ID and lease>os.time() then
                 return nil -- locked by another active server
             end
-            return {coins=amount(old.coins),owner=SERVER_ID,lockUntil=os.time()+LEASE}
+            return {coins=amount(old.coins),questClaims=type(old.questClaims)=="table" and old.questClaims or {},owner=SERVER_ID,lockUntil=os.time()+LEASE}
         end)
     end)
     if player.Parent~=Players then return end
@@ -82,7 +82,7 @@ local function save(player,release)
     local ok,err=pcall(function()
         STORE:UpdateAsync(key(player),function(old)
             if type(old)~="table" or old.owner~=SERVER_ID then return nil end
-            return {coins=balance,owner=release and nil or SERVER_ID,
+            return {coins=balance,questClaims=type(old.questClaims)=="table" and old.questClaims or {},owner=release and nil or SERVER_ID,
                 lockUntil=release and 0 or (os.time()+LEASE)}
         end)
     end)
@@ -243,6 +243,54 @@ game:BindToClose(function()
     local untilTime=os.clock()+25
     while count>0 and os.clock()<untilTime do task.wait(.1) end
 end)
+
+-- Quests V1: server-only, idempotent reward grant; requires a loaded coin profile.
+-- Reward ids are unique per UTC day and quest name.
+local questReward = SS:FindFirstChild("AnmolQuestReward")
+if not questReward then
+    questReward = Instance.new("BindableFunction")
+    questReward.Name = "AnmolQuestReward"
+    questReward.Parent = SS
+end
+local ALLOWED_QUEST_PAY = {TreeDay=35, CrystalDay=55, CraftDay=45, HuntDay=70}
+questReward.OnInvoke = function(player, day, questId)
+    if typeof(player) ~= "Instance" or not player:IsA("Player") or player.Parent ~= Players then return false end
+    if type(day) ~= "number" or day ~= math.floor(os.time()/86400) then return false end
+    if type(questId) ~= "string" or not ALLOWED_QUEST_PAY[questId] then return false end
+    local s = ready(player)
+    if not s then return false end
+    s.busy = true
+    local rewardId = tostring(day) .. ":" .. questId
+    local updated
+    local ok, err = pcall(function()
+        updated = STORE:UpdateAsync(key(player), function(old)
+            if type(old) ~= "table" or old.owner ~= SERVER_ID then return nil end
+            local claims = type(old.questClaims)=="table" and old.questClaims or {}
+            if not claims[rewardId] then
+                claims[rewardId] = true
+                old.coins = math.min(MAX_COINS, amount(old.coins) + ALLOWED_QUEST_PAY[questId])
+            end
+            -- Keep 14-day claim history to avoid unbounded DataStore growth.
+            for claim in pairs(claims) do
+                local claimDay = tonumber(tostring(claim):match("^(%d+):"))
+                if claimDay and claimDay < day-14 then claims[claim] = nil end
+            end
+            old.questClaims = claims
+            old.lockUntil = os.time()+LEASE
+            return old
+        end)
+    end)
+    if ok and updated and sessions[player] == s then
+        s.balance = amount(updated.coins)
+        s.dirty = false
+        sync(player)
+    else
+        warn("[Anmol Quests] Coin grant unavailable", err)
+    end
+    s.busy = false
+    return ok and updated ~= nil
+end
+
 print("[Anmol] Coins + Village Shop + Trading V1 ready")
 
 

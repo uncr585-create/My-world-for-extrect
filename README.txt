@@ -1,31 +1,29 @@
-ANMOL: LIVING WORLD — Trading V2 + Equipment Shop
+ANMOL: LIVING WORLD — QUESTS + DAILY MISSIONS V1
 
-IMPORTANT: These are UPDATED copies of existing Economy/Inventory scripts, NOT additive copies.
-Keep the original archives in GitHub for now, as requested. When setting up Studio, only ONE active Script per role.
+UPLOAD TO GITHUB: Keep all files in Quests_Daily_V1 folder for now. Delete nothing until final merge.
 
-Contents:
-- Economy.server.lua — REPLACE Coins Shop Trading V1 Economy.server.lua
-- EconomyHUD.client.lua — REPLACE Coins Shop Trading V1 HUD
-- InventoryCrafting.server.lua — REPLACE the InventoryCrafting.server.lua version from Equipment Armor V1 (preserves armor, crafted items and DataStore)
+PC/ROBLOX STUDIO SETUP LATER:
+- DailyQuests.server.lua -> ServerScriptService as Script
+- DailyQuestsHUD.client.lua -> StarterPlayer/StarterPlayerScripts as LocalScript
+- Economy.server.lua -> replacement for previous Economy.server.lua (do not run both)
 
-In Studio:
-  Economy.server.lua -> ServerScriptService > Script
-  InventoryCrafting.server.lua -> ServerScriptService > Script
-  EconomyHUD.client.lua -> StarterPlayer > StarterPlayerScripts > LocalScript
+REQUIRES:
+- Latest InventoryCrafting.server.lua provides AnmolTreesCut, AnmolCrystalsMined, AnmolItemsCrafted attributes
+- Achievements.server.lua provides AnmolMonsterKills
+- Latest Coins + Shop + Trading V2 Economy script; updated copy in this package.
 
-Features:
-- 5 shop equipment items: Stone Axe 90, Sword 180, Leaf Vest 125, Stone Armor 350, Crystal Armor 950 coins.
-- Existing material bundles and coin trading remain.
-- Item trade: one-way transfer to nearby player after recipient Accept.
-- Server checks item type, count (1-10), inventory ownership/capacity and distance.
-- Trade requests expire after 30 seconds; cooldown and recipient confirmation.
+DAILY QUESTS (UTC reset):
+- Cut 10 trees: 35 Coins
+- Mine 5 crystals: 55 Coins
+- Craft 3 items: 45 Coins
+- Defeat 3 monsters: 70 Coins
 
-Requirements / limitations:
-- Shop purchases require standing near Heart Village Trader.
-- Buyer balance must be loaded from the existing Economy DataStore.
-- Both players must have loaded inventories.
-- Shop purchase uses two independent saved profiles (coins/inventory): it isn't an atomic cross-DataStore transaction; data loss or rejoin at wrong time could yield inconsistent results. Test and improve save recovery before releasing to public players.
-- No Robux involved.
-- Item trade is an offer of items from sender to recipient, not a simultaneous two-sided exchange; do not present it as swap trading.
-- Existing equipped armor might remain active until refreshed after trading it away; test equipped-item state.
-- Not tested in Roblox Studio.
+Daily quests measure progress from the day's initial snapshot, not all-time totals. A quest can be claimed once per UTC day. Server checks progress. Coins are granted through an idempotent server-only quest reward function and tracked in the Economy coin profile to reduce duplicate grants across retries. The quest save is separate and can lag the coin save, but retrying an already-awarded claim won't mint it again.
+
+NOTES:
+- No Robux purchases or official Roblox badges.
+- DataStore tests require a published experience and appropriate Studio access.
+- If Economy profile fails to load, coin rewards do not grant.
+- Some earlier scripts are untested and may require integration fixes on PC.
+- Daily quests are based on UTC days, not local time zones.
+- Must test load order, saving, UI overlap, quest reset, and in-game enemy kill events.
