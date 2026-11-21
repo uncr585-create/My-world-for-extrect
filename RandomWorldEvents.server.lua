@@ -46,7 +46,20 @@ local function roots(duration)
                     local hrp=char and char:FindFirstChild("HumanoidRootPart")
                     local hum=char and char:FindFirstChildOfClass("Humanoid")
                     if hrp and hum and hum.Health>0 and (hrp.Position-part.Position).Magnitude<5 then
-                        hum:TakeDamage(8)
+                        -- Use the server-only armor damage bridge when available.
+                        -- Fallback supports setups where ArmorService is not installed.
+                        local damageBridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolApplyPlayerDamage")
+                        if damageBridge and damageBridge:IsA("BindableFunction") then
+                            local ok, applied = pcall(function()
+                                return damageBridge:Invoke(plr, 8)
+                            end)
+                            if not ok then
+                                warn("[Anmol Events] Armor damage bridge error:", applied)
+                            end
+                            -- Do not bypass armor after a bridge failure: retry next event.
+                        else
+                            hum:TakeDamage(8)
+                        end
                     end
                 end
             end)
