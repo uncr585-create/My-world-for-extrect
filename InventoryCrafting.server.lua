@@ -1,4 +1,4 @@
--- ANMOL: LIVING WORLD / Inventory + Crafting V1
+-- ANMOL: LIVING WORLD / Inventory + Crafting V1 (Resource Integration)
 -- Install as Script in ServerScriptService.
 -- Server-authoritative inventory, crafting, node harvesting. No saving in V1.
 
@@ -151,6 +151,15 @@ local function setupNode(node)
         local gained = math.min(room, yieldCount)
         inv[kind] += gained
         broadcast(player, "+" .. gained .. " " .. kind)
+        -- World Anger V1 server-only integration; only successful harvests count.
+        local worldAction = game:GetService("ServerScriptService"):FindFirstChild("AnmolWorldAction")
+        if worldAction and worldAction:IsA("BindableEvent") then
+            if kind == "Wood" then
+                worldAction:Fire("TreeCut")
+            elseif kind == "Crystal" then
+                worldAction:Fire("CrystalMined")
+            end
+        end
         local respawn = tonumber(node:GetAttribute("RespawnSeconds")) or 12
         task.delay(math.clamp(respawn, 3, 120), function()
             nodeBusy[node] = nil
@@ -161,4 +170,4 @@ end
 
 for _, node in ipairs(CollectionService:GetTagged("AnmolResourceNode")) do setupNode(node) end
 CollectionService:GetInstanceAddedSignal("AnmolResourceNode"):Connect(setupNode)
-print("[Anmol] Inventory + Crafting V1 started; recipes:", table.concat(RECIPE_ORDER, ", "))
+print("[Anmol] Inventory + Crafting V1 (Resource Integration) started; recipes:", table.concat(RECIPE_ORDER, ", "))
