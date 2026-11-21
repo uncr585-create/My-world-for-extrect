@@ -1,39 +1,30 @@
-ANMOL: LIVING WORLD — Building + Shelter V1 (mobile-prepared, UNTESTED)
+ANMOL: LIVING WORLD — Dynamic Weather + Day/Night V1
 
-FILES
-1) Building.server.lua -> ServerScriptService as Script
-2) BuildingHUD.client.lua -> StarterPlayer/StarterPlayerScripts as LocalScript
-3) InventoryCrafting.server.lua -> REPLACE the previous saving-enabled
-   InventoryCrafting.server.lua from Data Saving V1 (do NOT run two copies).
+FEATURES
+- 12 real minutes = one 24-hour in-game cycle
+- Clear, Rain, Fog, Thunderstorm (weather state + sky/cloud/fog effects)
+- Higher World Anger increases Fog and Thunderstorm probability
+- Weather + local game time mobile-friendly HUD
+- Thunderstorm HUD warning (no screen flashing)
 
-ALSO KEEP
-- IslandMap.server.lua (map generation, buildable ground)
-- IslandExpansionV2.server.lua (optional extra ground)
-- Normal/Hardcore mode scripts
-- Resource gathering and Inventory/Crafting UI scripts
+IMPORTANT LIMITATIONS
+- Rain is atmospheric weather state only; falling raindrop particles and sounds are NOT yet implemented.
+- Monsters, stamina, water, shelter and crop effects are NOT yet linked to the weather.
+- These scripts have not been run in Roblox Studio yet.
 
-COSTS
-Wall 4 Wood + 2 Stone
-Floor 3 Wood
-Campfire 2 Wood + 3 Stone
-Shelter 8 Wood + 4 Stone
+ROBLOX STUDIO SETUP (when PC available)
+1. Keep existing WorldAnger.server.lua in ServerScriptService.
+2. Put WeatherDayNight.server.lua in ServerScriptService as a Script.
+3. Put WeatherHUD.client.lua in StarterPlayer > StarterPlayerScripts as a LocalScript.
+4. Test in Play mode; watch Weather and TimeOfDayHours under ReplicatedStorage/AnmolWorldState.
+5. DO NOT install multiple copies of weather/time scripts. If you add other day/night scripts later, disable those or they will fight over Lighting.ClockTime.
+6. Existing World Anger V1 is REQUIRED. The weather script waits up to 30s for it.
 
-HOW IT WORKS
-- Select a piece and tap PLACE AHEAD; it places around 12 studs in
-  front of your character. Rotate to choose direction.
-- Server verifies player, distance, ground and materials; uses a
-  server-only BindableFunction to deduct from existing persistent inventory.
-- Structures are anchored placeholders; campfires give light.
-- Build limit: 35 per player per server. Building is not saved yet.
-- Shared Heart Village is protected from building.
-- Buildings cannot overlap; some decorations and steep/raised areas
-  may still need extra collision checks in Studio.
+ANDROID PREP
+Extract this ZIP and upload all 3 files to your Anmol Living World GitHub repository.
+Upload the individual .lua files; keep the ZIP as a backup if you want.
 
-TEST IN ROBLOX STUDIO
-- Use a published test experience with DataStore access appropriately configured.
-- Test harvest -> place -> inventory deduction -> save -> reload.
-- Test Normal/Hardcore, 2 players, mobile HUD scale, and placement boundaries.
-- If all players start at the village, walk towards the forest before building.
+SERVER TEST (Studio Command Bar when running as server)
+game.ServerScriptService.AnmolWorldAction:Fire("Explosion")
 
-NOTE: Importing .lua files to GitHub does not automatically install them
-into Roblox. Studio setup, playtesting and publishing still required.
+Not an executable Android APK or a Roblox experience until integrated in Studio.
