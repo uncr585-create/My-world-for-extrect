@@ -18,8 +18,11 @@ local RECIPES = {
     {name="NoiseDecoy", label="Noise Decoy", need="2 Stone + 1 Crystal"},
     {name="AntlerCharm", label="Antler Charm", need="1 Hollow Antler + 3 Fiber"},
     {name="CrystalBlade", label="Crystal Blade", need="2 Crystal Shards + 3 Stone + 1 Crystal"},
+    {name="LeafVest", label="Leaf Vest", need="8 Fiber + 3 Wood"},
+    {name="StoneArmor", label="Stone Armor", need="12 Stone + 4 Fiber"},
+    {name="CrystalArmor", label="Crystal Armor", need="6 Crystal + 8 Stone + 1 Crystal Shard"},
 }
-local ITEM_ORDER = {"Wood", "Stone", "Crystal", "Fiber", "HollowAntler", "CrystalShard", "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy", "AntlerCharm", "CrystalBlade"}
+local ITEM_ORDER = {"Wood", "Stone", "Crystal", "Fiber", "HollowAntler", "CrystalShard", "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy", "AntlerCharm", "CrystalBlade", "LeafVest", "StoneArmor", "CrystalArmor"}
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "AnmolInventoryHUD"

@@ -16,6 +16,7 @@ local ITEMS = {
     HollowAntler = true, CrystalShard = true,
     StoneAxe = true, Sword = true, Torch = true, Bandage = true, NoiseDecoy = true,
     AntlerCharm = true, CrystalBlade = true,
+    LeafVest = true, StoneArmor = true, CrystalArmor = true,
 }
 local RECIPES = {
     StoneAxe = { Wood = 3, Stone = 2 },
@@ -25,8 +26,11 @@ local RECIPES = {
     NoiseDecoy = { Stone = 2, Crystal = 1 },
     AntlerCharm = { HollowAntler = 1, Fiber = 3 },
     CrystalBlade = { CrystalShard = 2, Stone = 3, Crystal = 1 },
+    LeafVest = { Fiber = 8, Wood = 3 },
+    StoneArmor = { Stone = 12, Fiber = 4 },
+    CrystalArmor = { Crystal = 6, Stone = 8, CrystalShard = 1 },
 }
-local RECIPE_ORDER = { "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy", "AntlerCharm", "CrystalBlade" }
+local RECIPE_ORDER = { "StoneAxe", "Sword", "Torch", "Bandage", "NoiseDecoy", "AntlerCharm", "CrystalBlade", "LeafVest", "StoneArmor", "CrystalArmor" }
 local NODE_YIELDS = { Wood = 3, Stone = 2, Crystal = 1, Fiber = 2 }
 
 -- DataStore V1. Change DATASTORE_NAME only if you intentionally want a new save slot.
@@ -302,6 +306,21 @@ combatBridge.OnInvoke = function(player, itemName)
     local record = records[player]
     return inv ~= nil and record ~= nil and record.loaded == true
         and record.locked == true and not record.closing and (inv[itemName] or 0) >= 1
+end
+
+-- Armor ownership bridge: server-only, backed by saved inventory.
+local armorBridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolHasArmor")
+if not armorBridge then
+    armorBridge = Instance.new("BindableFunction")
+    armorBridge.Name = "AnmolHasArmor"
+    armorBridge.Parent = game:GetService("ServerScriptService")
+end
+armorBridge.OnInvoke = function(player, itemName)
+    if typeof(player) ~= "Instance" or not player:IsA("Player") then return false end
+    if itemName ~= "LeafVest" and itemName ~= "StoneArmor" and itemName ~= "CrystalArmor" then return false end
+    local inv, record = inventories[player], records[player]
+    return inv ~= nil and record ~= nil and record.loaded == true and record.locked == true
+        and not record.closing and (inv[itemName] or 0) >= 1
 end
 
 -- Loot Rewards V1: server-only, validated item grant bridge.

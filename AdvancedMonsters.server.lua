@@ -1,3 +1,12 @@
+local function dealArmorAwareDamage(player, humanoid, amount)
+    local bridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolApplyPlayerDamage")
+    if bridge and bridge:IsA("BindableFunction") then
+        local ok, result = pcall(function() return bridge:Invoke(player, amount) end)
+        if ok and result == true then return end
+    end
+    humanoid:TakeDamage(amount)
+end
+
 -- ANMOL: LIVING WORLD | Monster AI V2 — Hollow Deer + Crystal Burrower
 -- Script -> ServerScriptService. Keep MonsterAI.server.lua (V1) enabled.
 -- V2 is a standalone addition: does not require editing the V1 MonsterConfig.
@@ -171,7 +180,7 @@ local function runBrain(kind,model,hum,root)
             hum.WalkSpeed=cfg.chase
             if dist<=cfg.reach and os.clock()-lastAttack>=cfg.attackCooldown then
                 lastAttack=os.clock()
-                if target.hum.Health>0 then target.hum:TakeDamage(cfg.attackDamage) end
+                if target.hum.Health>0 then dealArmorAwareDamage(target.player, target.hum, cfg.attackDamage) end
             end
             if os.clock()-lastMove>1 then
                 lastMove=os.clock()

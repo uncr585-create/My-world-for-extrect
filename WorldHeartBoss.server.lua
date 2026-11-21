@@ -1,3 +1,12 @@
+local function dealArmorAwareDamage(player, humanoid, amount)
+    local bridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolApplyPlayerDamage")
+    if bridge and bridge:IsA("BindableFunction") then
+        local ok, result = pcall(function() return bridge:Invoke(player, amount) end)
+        if ok and result == true then return end
+    end
+    humanoid:TakeDamage(amount)
+end
+
 -- ANMOL: LIVING WORLD — World Heart Boss V1
 -- ServerScriptService > Script named WorldHeartBoss
 -- Requires IslandMap.server.lua + IslandExpansionV2.server.lua
@@ -168,7 +177,7 @@ local function warningBlast(centerPoint, radius, damage, generation)
             if humanoid and root and inArena(root.Position) then
                 local dxz = Vector3.new(root.Position.X - centerPoint.X, 0, root.Position.Z - centerPoint.Z)
                 if dxz.Magnitude <= radius then
-                    humanoid:TakeDamage(damage)
+                    dealArmorAwareDamage(player, humanoid, damage)
                 end
             end
         end

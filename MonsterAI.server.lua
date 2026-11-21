@@ -161,6 +161,15 @@ local function moveToward(hum, root, destination)
     hum:MoveTo(destination)
 end
 
+local function dealArmorAwareDamage(player, humanoid, amount)
+    local bridge = game:GetService("ServerScriptService"):FindFirstChild("AnmolApplyPlayerDamage")
+    if bridge and bridge:IsA("BindableFunction") then
+        local ok, result = pcall(function() return bridge:Invoke(player, amount) end)
+        if ok and result == true then return end
+    end
+    humanoid:TakeDamage(amount)
+end
+
 local function monsterBrain(monsterType, model, hum, root)
     local cfg = Config.Types[monsterType]
     local target = nil
@@ -184,7 +193,7 @@ local function monsterBrain(monsterType, model, hum, root)
             local dist = (target.root.Position - root.Position).Magnitude
             if dist <= cfg.AttackRadius and os.clock() - lastAttack >= cfg.AttackCooldown then
                 lastAttack = os.clock()
-                target.humanoid:TakeDamage(cfg.Damage)
+                dealArmorAwareDamage(target.player, target.humanoid, cfg.Damage)
             end
             if os.clock() - lastPath > 0.8 then
                 lastPath = os.clock()
