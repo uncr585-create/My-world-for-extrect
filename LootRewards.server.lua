@@ -34,6 +34,11 @@ local function onDeath(model)
     if os.time() - lastAt > 25 then return end
     local player = Players:GetPlayerByUserId(lastHit)
     if not player then return end
+    -- Inform Achievements about a server-verified monster kill.
+    local event = SS:FindFirstChild("AnmolMonsterDefeated")
+    if event and event:IsA("BindableEvent") then
+        event:Fire(player, model:GetAttribute("MonsterType"))
+    end
     local rewards = rollRewards(model:GetAttribute("MonsterType"))
     if not rewards then return end
     local ok, granted, result = pcall(function()
