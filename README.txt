@@ -1,30 +1,23 @@
-ANMOL: LIVING WORLD — MONSTER LOOT V2
+ANMOL: LIVING WORLD — SPECIAL WEAPONS & CHARM V1
 
-Adds Hollow Deer and Crystal Burrower loot without removing the V1 loot and achievements kill event.
+FEATURES
+- Crystal Blade: 32 damage, 10-stud range, 0.85s cooldown; every 4th successful Crystal Blade hit adds +18 bonus damage (50 total).
+- Antler Charm: passive +3 Health every 10 seconds while item is owned and player is alive.
+- No new remote lets players grant items or health themselves.
+- Existing monster last-hit attribution remains intact for loot/achievements.
 
-STUDIO INSTALL (after PC is available):
-1. Replace the existing InventoryCrafting.server.lua Script in ServerScriptService with this version.
-2. Replace the existing LootRewards.server.lua Script in ServerScriptService with this version.
-3. Replace the InventoryCraftingHUD.client.lua LocalScript in StarterPlayer > StarterPlayerScripts with this version.
-4. Keep MonsterAI.server.lua (V1), AdvancedMonsters.server.lua (V2), Combat.server.lua (last-hit enabled from Loot V1), Achievements.server.lua, and AchievementsHUD.client.lua.
-5. Do NOT run multiple InventoryCrafting or LootRewards scripts simultaneously.
-6. Keep existing DataStore name to retain saves. Test Studio DataStore access and backup important live data before deployment.
+INSTALL LATER IN ROBLOX STUDIO
+1. ServerScriptService: replace existing Combat.server.lua with this one (do not run two copies).
+2. ServerScriptService: replace existing InventoryCrafting.server.lua with this one (do not run two copies).
+3. ServerScriptService: add AntlerCharm.server.lua as a separate Script.
+4. StarterPlayer > StarterPlayerScripts: replace CombatHUD.client.lua with this one.
+5. Keep InventoryCraftingHUD.client.lua from Monster Loot V2, as it already lists both recipes.
+6. Keep Monster AI, Loot Rewards, World Anger, DataStore and other existing scripts.
 
-DROP TABLES (probability per credited kill):
-Root Stalker: 2-4 Wood, 1-2 Fiber, 8% chance of 1 Crystal.
-Whisper Shade: 1-3 Stone, 1-2 Fiber, 22% chance of 1 Crystal.
-Hollow Deer: 2-4 Wood, 2-3 Fiber, 35% chance of 1 HollowAntler.
-Crystal Burrower: 3-5 Stone, 1-2 Crystal, 30% chance of 1 CrystalShard.
-
-NEW CRAFTS:
-AntlerCharm: 1 HollowAntler + 3 Fiber
-CrystalBlade: 2 CrystalShard + 3 Stone + 1 Crystal
-These crafted items are INVENTORY ITEMS ONLY for now; no damage/ability effects are connected.
-
-IMPORTANT:
-- Requires attacker attribution from Combat.server.lua: LastHitUserId / LastHitAt.
-- Uses server-only AnmolGrantLoot bridge; does not trust client reward amounts.
-- Rewards can be partially granted when inventory capacity is limited (max 100 items).
-- The monster kill achievement event is preserved.
-- Scripts not tested in Roblox Studio yet.
-- Android: extract ZIP and upload .lua files to GitHub as source; do not run a ZIP.
+COMPATIBILITY NOTES
+- Uses the AnmolHasWeapon BindableFunction from InventoryCrafting as the server-only ownership check.
+- CrystalBlade and AntlerCharm are already craftable and saveable in Monster Loot V2 inventory.
+- Antler Charm is passively active while owned; no equip control in V1.
+- Health regeneration requires a living Humanoid; it does not bring eliminated Hardcore players back.
+- Requires a proper monster rig with an AnmolMonster attribute and Humanoid.
+- This package hasn't been run inside Roblox Studio; test on an unpublished/private experience first.

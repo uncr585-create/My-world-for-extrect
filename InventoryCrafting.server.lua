@@ -297,7 +297,7 @@ if not combatBridge then
 end
 combatBridge.OnInvoke = function(player, itemName)
     if typeof(player) ~= "Instance" or not player:IsA("Player") then return false end
-    if itemName ~= "StoneAxe" and itemName ~= "Sword" then return false end
+    if itemName ~= "StoneAxe" and itemName ~= "Sword" and itemName ~= "CrystalBlade" and itemName ~= "AntlerCharm" then return false end
     local inv = inventories[player]
     local record = records[player]
     return inv ~= nil and record ~= nil and record.loaded == true

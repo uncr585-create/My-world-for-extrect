@@ -40,7 +40,7 @@ status.Text = ""
 status.Size = UDim2.fromOffset(170, 25)
 status.Position = UDim2.new(1, -180, 1, -225)
 status.Parent = gui
-local choices = {"Fists", "StoneAxe", "Sword"}
+local choices = {"Fists", "StoneAxe", "Sword", "CrystalBlade"}
 weaponButton.Activated:Connect(function()
     for i, name in ipairs(choices) do
         if name == currentWeapon then

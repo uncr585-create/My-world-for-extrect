@@ -20,8 +20,10 @@ local WEAPONS = {
     Fists = {Damage = 4, Range = 5, Cooldown = 0.9},
     StoneAxe = {Damage = 16, Range = 7, Cooldown = 0.9},
     Sword = {Damage = 25, Range = 9, Cooldown = 0.7},
+    CrystalBlade = {Damage = 32, Range = 10, Cooldown = 0.85},
 }
 local lastAttack = {}
+local crystalHits = {} -- server-side consecutive successful hits
 local bridge = SS:WaitForChild("AnmolHasWeapon", 30)
 if not bridge then warn("[Anmol Combat] Missing AnmolHasWeapon bridge in InventoryCrafting") end
 local function hasWeapon(player, name)
@@ -80,11 +82,23 @@ request.OnServerEvent:Connect(function(player, requestedWeapon)
             monster:SetAttribute("LastHitUserId", player.UserId)
             monster:SetAttribute("LastHitAt", os.time())
         end
-        target:TakeDamage(config.Damage)
-        feedback:FireClient(player, "Hit: -" .. config.Damage)
+        local damage = config.Damage
+        local burst = false
+        if requestedWeapon == "CrystalBlade" then
+            crystalHits[player] = (crystalHits[player] or 0) + 1
+            if crystalHits[player] >= 4 then
+                crystalHits[player] = 0
+                damage += 18 -- every fourth successful Crystal Blade hit
+                burst = true
+            end
+        else
+            crystalHits[player] = 0
+        end
+        target:TakeDamage(damage)
+        feedback:FireClient(player, burst and ("Crystal Burst! -" .. damage) or ("Hit: -" .. damage))
     else
         feedback:FireClient(player, "Miss")
     end
 end)
-Players.PlayerRemoving:Connect(function(player) lastAttack[player] = nil end)
+Players.PlayerRemoving:Connect(function(player) lastAttack[player] = nil; crystalHits[player] = nil end)
 print("[Anmol] Combat V1 ready")
