@@ -1,15 +1,19 @@
-ANMOL: LIVING WORLD — WORLD ANGER V1
+ANMOL: LIVING WORLD — Health / Hunger / Stamina V1
 
-On Android: save these three files to a separate GitHub repository for Anmol Living World.
-On Windows/Mac Roblox Studio (later):
-1. Put WorldAnger.server.lua code in a Script in ServerScriptService.
-2. Put WorldAngerHUD.client.lua code in a LocalScript in StarterPlayer > StarterPlayerScripts.
-3. Hit Play to see the replicated anger HUD. It starts at 20%.
-4. In Studio server command bar, test:
-   game.ServerScriptService.AnmolWorldAction:Fire("TreeCut")
-   game.ServerScriptService.AnmolWorldAction:Fire("CrystalMined")
-   game.ServerScriptService.AnmolWorldAction:Fire("Explosion")
-   game.ServerScriptService.AnmolWorldAction:Fire("PlantHealed")
-   game.ServerScriptService.AnmolWorldAction:Fire("WorldHeartHealed")
+Files
+- SurvivalSystem.server.lua  -> ServerScriptService > Script
+- SurvivalHUD.client.lua     -> StarterPlayer > StarterPlayerScripts > LocalScript
 
-Important: V1 does not yet automatically detect tree chopping, mining, explosions or healing. Future resource scripts should call AnmolWorldAction on the SERVER after validating a player's action. It does not implement monsters or environment changes yet. Do not use a client RemoteEvent accepting arbitrary action names.
+V1 behavior
+- Health uses Roblox Humanoid health (default 100).
+- Hunger starts at 100 and decreases over time; at zero, health decreases.
+- Stamina starts at 100; sprinting drains it and resting regenerates it.
+- Mobile players tap the Sprint button to toggle; desktop players hold LeftShift.
+- Movement and hunger/stamina are authoritative on the server.
+- Stats reset on respawn in V1. Permanent death rules for Hardcore are NOT included here.
+- Eating, hunger saving and game mode integration are planned for a later module.
+
+Setup requires Roblox Studio on Windows or macOS. Android can save/edit/upload these files,
+but not execute these server-side game scripts in an independent Roblox experience.
+
+Security: never let a client send arbitrary Hunger/Stamina/Health values to the server.
